@@ -1,0 +1,11 @@
+.DS_Store
+*.pyc
+__pycache__/
+env/
+.env
+venv/
+*.db
+.vscode/
+*.png
+storage/
+.pgdata/
