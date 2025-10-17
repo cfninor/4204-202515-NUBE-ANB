@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+gunicorn
+SQLAlchemy>=2.0
+psycopg2-binary
+pydantic
+pydantic-settings
+python-dotenv
+rich
+asgi-correlation-id
+python-json-logger
+python-jose[cryptography]
+passlib[bcrypt]
+celery
+redis
+slowapi             
+prometheus-fastapi-instrumentator
