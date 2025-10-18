@@ -26,12 +26,17 @@
 │   │   │   ├── 📜 __init__.py
 │   │   │   ├── 📜 user.py
 │   │   │   ├── 📜 video.py
-│   │   │   └── 📜 videoStatus.py
+│   │   │   ├── 📜 videoStatus.py
+│   │   │   └── 📜 videoVote.py
+│   │   ├── 📂 schemas/                  # Schemas
+│   │   │   ├── 📜 __init__.py
+│   │   │   └── 📜 auth.py
 │   │   ├── 📂 services/                 # Servicios
 │   │   │   ├── 📜 __init__.py
-│   │   │   └── 📜 service_example.
+│   │   │   └── 📜 auth.py
 │   │   ├── 📂 test/                     # Pruebas unitarias
-│   │   │   └── 📜 test_example.py
+│   │   │   ├── 📜 conftest.py
+│   │   │   └── 📜 test_auth.py
 │   │   ├── 📂 workers/                  # Workers - RabbitMQ, tareas pesadas
 │   │   │   └── 📜 __init__.py
 │   │   ├── 📜 __init__.py               
@@ -39,7 +44,8 @@
 │   │   ├── 📜 database.py                  # Conexión y manejo de la base de datos
 │   │   ├── 📜 logging_config.py            # Configuración de logs
 │   │   ├── 📜 main.py                      # Punto de entrada principal (FastAPI app)
-│   │   └── 📜 prestart.py                  # Script previo al inicio
+│   │   ├── 📜 prestart.py                  # Script previo al inicio
+│   │   └── 📜 security.py                  # Configuración de seguridad
 │   ├── 📜 __init__.py                      
 │   ├── 📜 Dockerfile                       # Imagen base para la API
 │   ├── 📜 requirements.txt                 # Dependencias principales
