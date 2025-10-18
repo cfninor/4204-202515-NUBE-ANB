@@ -67,6 +67,12 @@ jobs:
         run: |
           python -m pytest
 
+      - name: Show coverage.xml head (debug)
+        run: |
+          ls -lah
+          echo "---- coverage.xml (head) ----"
+          head -n 40 coverage.xml || true
+
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
