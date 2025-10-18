@@ -35,11 +35,14 @@ services:
     ports: [ "6379:6379" ]
 
   api:
-    build: .
+    build: 
+      context: .
+      dockerfile: anbapi/Dockerfile
     env_file: .env
     depends_on: [ pgbouncer, rabbitmq, redis ]
+    working_dir: /app/app
     volumes:
-      - ./storage:/app/storage
+      - ./anbapi/app/storage:/app/app/storage
     ports: [ "8000:8000" ]
     command: >
       sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --max-requests 2000 --max-requests-jitter 200"

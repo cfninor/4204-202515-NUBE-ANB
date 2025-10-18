@@ -5,7 +5,7 @@ RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
 		build-essential libpq-dev && \
 	rm -rf /var/lib/apt/lists/*
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . /app
-RUN mkdir -p /app/storage/uploads /app/storage/processed
+COPY anbapi/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+COPY anbapi/app /app/app
+RUN mkdir -p /app/app/storage/uploads /app/app/storage/processed
