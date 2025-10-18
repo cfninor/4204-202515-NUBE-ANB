@@ -80,3 +80,10 @@ pip install -r requirements-dev.txt
 cd .\app\
 python prestart.py && uvicorn main:app --reload
 ```
+
+### 🧪 Pruebas locales
+
+1. Desde la carpeta raíz del proyecto
+```bash
+python -m pytest
+```
