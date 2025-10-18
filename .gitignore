@@ -9,3 +9,4 @@ venv/
 *.png
 storage/
 .pgdata/
+ANB.log

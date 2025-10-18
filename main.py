@@ -8,15 +8,17 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from config import config
 from logging_config import configure_logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("main")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
-    logger.info("Starting up the application...", extra={"app_name": "NUBE_ANB"})
-    yield
-    logger.info("Shutting down the application...", extra={"app_name": "NUBE_ANB"})
+    logger.info("API iniciada ✅")
+    try:
+        yield
+    finally:
+        logger.info("API apagada 🛑")
 
 
 app = FastAPI(lifespan=lifespan, title=config.__class__.__name__, version="1.0.0")

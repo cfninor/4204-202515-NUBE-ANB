@@ -20,8 +20,9 @@ services:
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 2000
       DEFAULT_POOL_SIZE: 50
+      AUTH_TYPE: scram-sha-256
     depends_on: [ postgres ]
-    ports: [ "6432:6432" ] 
+    ports: [ "6432:5432" ] 
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -32,3 +33,13 @@ services:
     image: redis:7-alpine
     container_name: redis-anb
     ports: [ "6379:6379" ]
+
+  api:
+    build: .
+    env_file: .env
+    depends_on: [ pgbouncer, rabbitmq, redis ]
+    volumes:
+      - ./storage:/app/storage
+    ports: [ "8000:8000" ]
+    command: >
+      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --max-requests 2000 --max-requests-jitter 200"

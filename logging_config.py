@@ -42,6 +42,10 @@ def configure_logging() -> None:
                     "encoding": "utf8",
                 },
             },
+            "root": {
+                "handlers": ["default", "rotating_file"],
+                "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
+            },
             "loggers": {
                 "uvicorn": {"handlers": ["default", "rotating_file"], "level": "INFO"},
                 "4204-202515-NUBE-ANB": {
