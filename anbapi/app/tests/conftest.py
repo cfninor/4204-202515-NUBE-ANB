@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
+import _dir # noqa: F401
 from database import Base, get_db
 from services.auth import router as auth_router
 
