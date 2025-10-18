@@ -1,4 +1,4 @@
-from anbapi.app.database import Base
+from database import Base
 
 from .user import User
 from .video import Video

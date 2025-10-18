@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-from anbapi.app.database import Base, get_db
-from anbapi.app.services.auth import router as auth_router
+from database import Base, get_db
+from services.auth import router as auth_router
 
 load_dotenv()
 

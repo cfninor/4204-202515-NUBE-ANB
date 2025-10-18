@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from anbapi.app.database import get_db
-from anbapi.app.models import User
-from anbapi.app.schemas import (
+from database import get_db
+from models import User
+from schemas import (
     LogInRequestSchema,
     LogInResponseSchema,
     SignUpRequestSchema,
 )
-from anbapi.app.security import create_access_token, hash_password, verify_password
+from security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 

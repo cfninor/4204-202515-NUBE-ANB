@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
 from sqlalchemy.pool import NullPool
 
-from anbapi.app.config import config
+from config import config
 
 engine = create_engine(
     config.DATABASE_URL,

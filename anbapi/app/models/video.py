@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Sequence, String
 from sqlalchemy.orm import relationship
 
-from anbapi.app.database import Base
+from database import Base
 
 from .videoStatus import VideoStatus
 

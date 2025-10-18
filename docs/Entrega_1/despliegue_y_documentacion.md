@@ -66,7 +66,7 @@ cp .env.example .\anbapi\app\.env
 python -m venv venv              # Instalar venv
 # ACTIVAR AMBIENTE
 source venv/bin/activate         # Linux/macOS
-venv\Scripts\activate            # Windows
+.\venv\Scripts\activate            # Windows
 ```
 
 3. Instalar dependencias
