@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Sequence, String
 from sqlalchemy.orm import relationship
@@ -22,12 +22,14 @@ class Video(Base):
     )
     title = Column(String, nullable=False)
     status = Column(Enum(VideoStatus), default=VideoStatus.UPLOADED, nullable=False)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     processed_at = Column(DateTime, nullable=True)
     original_url = Column(String, nullable=False)
     processed_url = Column(String, nullable=True)
-    votes = Column(Integer, default=0)
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     owner = relationship("User", back_populates="videos")
+    votes = relationship(
+        "VideoVote", back_populates="video", cascade="all, delete-orphan"
+    )

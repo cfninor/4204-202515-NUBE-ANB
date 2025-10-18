@@ -24,6 +24,18 @@ services:
     depends_on: [ postgres ]
     ports: [ "6432:5432" ] 
 
+  db-init:
+    image: postgres:16-alpine
+    depends_on: [ postgres ]
+    environment:
+      PGPASSWORD: anbpass
+    entrypoint: [ "sh", "-c" ]
+    command: >
+      "until pg_isready -h postgres -U anbuser -d anbdb; do sleep 1; done;
+       psql -h postgres -U anbuser -d anbdb -tc \"SELECT 1 FROM pg_database WHERE datname='anbdb_test'\" | grep -q 1 ||
+       psql -h postgres -U anbuser -d anbdb -c 'CREATE DATABASE anbdb_test;'"
+
+
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: rabbitmq-anb

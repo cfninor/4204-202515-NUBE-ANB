@@ -48,13 +48,14 @@ docker compose down
 
 1. Levantar servicios en Docker
 ```bash
-docker compose up -d postgres pgbouncer redis rabbitmq
+docker compose up -d postgres pgbouncer redis rabbitmq db-init
 ```
 
 2. Configurar el archivo .env para apuntar a los puertos expuestos en localhost
 ```bash
 # Ejemplo .env para API local usando infra en Docker
 # DATABASE_URL=postgresql+psycopg2://anbuser:anbpass@localhost:6432/anbdb
+# TEST_DATABASE_URL=postgresql+psycopg://anbuser:anbpass@localhost:5434/anbdb_test
 # RABBIT_URL=amqp://guest:guest@localhost:5672//
 # REDIS_URL=redis://localhost:6379/0
 cp .env.example .\anbapi\app\.env
@@ -65,7 +66,7 @@ cp .env.example .\anbapi\app\.env
 python -m venv venv              # Instalar venv
 # ACTIVAR AMBIENTE
 source venv/bin/activate         # Linux/macOS
-venv\Scripts\activate            # Windows
+.\venv\Scripts\activate            # Windows
 ```
 
 3. Instalar dependencias

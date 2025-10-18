@@ -15,6 +15,8 @@ class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
     RABBIT_URL: Optional[str] = None
+    ACCESS_TOKEN_EXPIRE_MINUTES: Optional[int] = None
+    SECRET_KEY: Optional[str] = None
 
 
 class DevConfig(GlobalConfig):
