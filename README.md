@@ -17,6 +17,9 @@
 
 ```
 📦 4204-202515-NUBE-ANB/
+├── 📂 .github/
+│ └── 📂 workflows/
+│     └── 📜 ci.yml                     # Pipeline CI (tests, lint, cobertura, Sonar, etc.)
 ├── 📂 anbapi/                          # Backend principal (FastAPI)
 │   ├── 📂 app/                         # Código fuente de la API
 │   │   ├── 📂 models/                  # Modelos (SQLAlchemy)
@@ -24,12 +27,20 @@
 │   │   │   ├── 📜 user.py
 │   │   │   ├── 📜 video.py
 │   │   │   └── 📜 videoStatus.py
+│   │   ├── 📂 services/                 # Servicios
+│   │   │   ├── 📜 __init__.py
+│   │   │   └── 📜 service_example.
+│   │   ├── 📂 test/                     # Pruebas unitarias
+│   │   │   └── 📜 test_example.py
+│   │   ├── 📂 workers/                  # Workers - RabbitMQ, tareas pesadas
+│   │   │   └── 📜 __init__.py
 │   │   ├── 📜 __init__.py               
 │   │   ├── 📜 config.py                    # Configuración global (variables, entorno)
 │   │   ├── 📜 database.py                  # Conexión y manejo de la base de datos
 │   │   ├── 📜 logging_config.py            # Configuración de logs
 │   │   ├── 📜 main.py                      # Punto de entrada principal (FastAPI app)
 │   │   └── 📜 prestart.py                  # Script previo al inicio
+│   ├── 📜 __init__.py                      
 │   ├── 📜 Dockerfile                       # Imagen base para la API
 │   ├── 📜 requirements.txt                 # Dependencias principales
 │   └── 📜 requirements-dev.txt             # Dependencias adicionales para desarrollo
@@ -39,8 +50,11 @@
 │   │   └── 📜 despliegue_y_documentacion.md # Instalación y ejecución de la aplicación
 ├── 📂 sustentacion/                    # Recursos de sustentación
 │   └── 📂 Entrega_1/                   # Entrega 1 - Sustentación
+├── 📜 .coveragerc                      # Configuración de cobertura
 ├── 📜 .env.example                     # Ejemplo de variables de entorno
 ├── 📜 .gitignore                       # Archivos/carpetas ignoradas por Git
 ├── 📜 docker-compose.yml               # Orquestación de contenedores (API, DB, Redis, etc.)
-└── 📜 README.md                        # Documentación general del proyecto
+├── 📜 pytest.ini                       # Configuración pruebas
+├── 📜 README.md                        # Documentación general del proyecto
+└── 📜 sonar-project.properties         # Configuración Sonar
 ```
