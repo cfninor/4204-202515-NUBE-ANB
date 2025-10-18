@@ -10,3 +10,7 @@ venv/
 storage/
 .pgdata/
 ANB.log
+
+# Archivos cobertura pytest
+.coverage
+coverage.xml

@@ -1,0 +1,15 @@
+[run]
+source =
+    anbapi/app/services
+    anbapi/app/workers
+omit =
+    */__init__.py
+    anbapi/app/config.py
+    anbapi/app/logging_config.py
+    anbapi/app/prestart.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    if False:
