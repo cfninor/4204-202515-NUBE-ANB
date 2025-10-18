@@ -1,4 +1,6 @@
 import os
+import sys
+from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv
@@ -7,9 +9,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-import _dir # noqa: F401
-from database import Base, get_db
-from services.auth import router as auth_router
+def _setup_path() -> None:
+    app_dir = Path(__file__).resolve().parents[1]  
+    p = str(app_dir)
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+_setup_path()
+
+from database import Base, get_db # noqa: E402
+from services.auth import router as auth_router # noqa: E402
 
 load_dotenv()
 
