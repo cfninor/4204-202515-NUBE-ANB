@@ -42,5 +42,6 @@
 ├── 📜 .env.example                     # Ejemplo de variables de entorno
 ├── 📜 .gitignore                       # Archivos/carpetas ignoradas por Git
 ├── 📜 docker-compose.yml               # Orquestación de contenedores (API, DB, Redis, etc.)
+├── 📜 pytest.ini                       # Configuración pruebas
 └── 📜 README.md                        # Documentación general del proyecto
 ```
