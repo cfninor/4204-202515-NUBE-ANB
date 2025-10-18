@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -19,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -43,13 +46,18 @@ jobs:
         run: |
           python -m pytest
 
-      - name: Upload coverage.xml
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: SonarQube Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORG: ${{ secrets.SONAR_ORG }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         with:
-          name: coverage-xml
-          path: coverage.xml
-          if-no-files-found: warn
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.python.version=3.12
+            -Dsonar.python.coverage.reportPaths=coverage.xml
 
   build:
     name: Docker build
@@ -62,4 +70,4 @@ jobs:
 
       - name: Build API image
         run: |
-          docker build -f anbapi/Dockerfile -t anbapi:ci .
+          docker build -f anbapi/Dockerfile -t anbapi:ci .  
