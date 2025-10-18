@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -22,6 +23,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, title=config.__class__.__name__, version="1.0.0")
+app.add_middleware(CorrelationIdMiddleware)
 
 
 @app.exception_handler(HTTPException)
