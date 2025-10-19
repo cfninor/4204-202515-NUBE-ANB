@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
 
+from database import Base
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Sequence, String
 from sqlalchemy.orm import relationship
-
-from database import Base
 
 from .videoStatus import VideoStatus
 
@@ -29,6 +28,7 @@ class Video(Base):
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    task_id = Column(String, nullable=False)
     owner = relationship("User", back_populates="videos")
     votes = relationship(
         "VideoVote", back_populates="video", cascade="all, delete-orphan"

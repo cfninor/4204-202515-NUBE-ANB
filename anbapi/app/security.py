@@ -1,14 +1,15 @@
 from datetime import datetime, timedelta, timezone
 
+from config import config
+from database import get_db
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
+from models import User
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from config import config
-from database import get_db
-from models import User
+AUTH_ERROR_MSG = "Falta de autenticación."
 
 pwd = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 
@@ -36,7 +37,7 @@ def get_current_user(
 ) -> User:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Falta token Bearer"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MSG
         )
 
     token = credentials.credentials
@@ -45,16 +46,16 @@ def get_current_user(
         sub = payload.get("sub")
         if sub is None:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token sin 'sub'"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MSG
             )
         user_id = int(sub)
     except jwt.JWTError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MSG
         )
     user = db.get(User, user_id)
     if not user or not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no válido"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=AUTH_ERROR_MSG
         )
     return user

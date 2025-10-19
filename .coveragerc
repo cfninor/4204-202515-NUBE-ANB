@@ -3,15 +3,29 @@ relative_files = True
 source =
     anbapi/app
 omit =
-    */__init__.py
-    anbapi/app/config.py
-    anbapi/app/logging_config.py
-    anbapi/app/prestart.py
-
-[report]
-omit =
-    anbapi/app/tests/*
     **/__init__.py
     anbapi/app/config.py
     anbapi/app/logging_config.py
     anbapi/app/prestart.py
+    anbapi/app/tests/*
+    anbapi/app/models/*
+    anbapi/app/schemas/*
+    anbapi/app/storage_a/*
+    anbapi/app/celery_app.py
+    anbapi/app/database.py
+    anbapi/app/main.py
+
+[report]
+omit =
+    **/__init__.py
+    anbapi/app/config.py
+    anbapi/app/logging_config.py
+    anbapi/app/prestart.py
+    anbapi/app/tests/*
+    anbapi/app/models/*
+    anbapi/app/schemas/*
+    anbapi/app/storage_a/*
+    anbapi/app/celery_app.py
+    anbapi/app/database.py
+    anbapi/app/main.py
+show_missing = True
