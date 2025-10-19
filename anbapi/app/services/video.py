@@ -17,14 +17,22 @@ from security import get_current_user
 from sqlalchemy.orm import Session
 from storage_a.local import LocalStorage
 from workers.tasks import process_video
+from typing import List, Optional
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from sqlalchemy.orm import Session
+from database import get_db
+from models import User, Video, VideoStatus
+from security import get_current_user
+from storage_a.local import LocalStorage
+from workers.tasks import process_video
 
 router = APIRouter(prefix="/api/videos", tags=["videos"])
-bearer = HTTPBearer()
 storage = LocalStorage()
 
 MAX_FILE_SIZE_MB = 100
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
+# ---------------------- POST /api/videos/upload ----------------------
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload(
     request: Request,
@@ -63,7 +71,31 @@ async def upload(
     task = process_video.delay(video.id)
     video.task_id = task.id
     db.commit()
-    return {
-        "message": "Video subido correctamente, procesamiento en curso",
-        "task_id": video.id,
-    }
+    return {"message": "Video subido correctamente, procesamiento en curso", "task_id": video.id}
+
+# ---------------------- GET /api/videos ----------------------
+@router.get("", status_code=status.HTTP_200_OK)
+def list_videos(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    videos: List[Video] = (
+        db.query(Video)
+        .filter(Video.user_id == user.id)
+        .order_by(Video.uploaded_at.desc())
+        .all()
+    )
+
+    def to_item(v: Video):
+        status_value = v.status.value if isinstance(v.status, VideoStatus) else str(v.status)
+        return {
+            "id": v.id,
+            "title": v.title,
+            "status": status_value,
+            "uploaded_at": v.uploaded_at,
+            "processed_at": v.processed_at,
+            "processed_url": v.processed_url if status_value.lower() == "processed" else None,
+        }
+
+    return [to_item(v) for v in videos]
