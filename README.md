@@ -55,6 +55,10 @@
 │   │   ├── 📜 main.py                      # Punto de entrada principal (FastAPI app)
 │   │   ├── 📜 prestart.py                  # Script previo al inicio
 │   │   └── 📜 security.py                  # Configuración de seguridad
+│   ├── 📂 nginx/                           # Configuración de NGINX
+│   │   ├── 📂 conf.d/ 
+│   │   │   └──  📜 api.conf                # Configuración api 
+│   │   └── 📜 nginx.conf                   # Configuración global de NGINX
 │   ├── 📜 __init__.py                      
 │   ├── 📜 Dockerfile                       # Imagen base para la API
 │   ├── 📜 requirements.txt                 # Dependencias principales
