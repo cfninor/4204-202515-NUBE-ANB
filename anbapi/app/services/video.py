@@ -99,3 +99,34 @@ def list_videos(
         }
 
     return [to_item(v) for v in videos]
+
+# ---------------------- GET /api/videos/{video_id} ----------------------
+@router.get("/{video_id}", status_code=status.HTTP_200_OK)
+def get_video_detail(
+    video_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    v_exists = db.query(Video).filter(Video.id == video_id).first()
+    if v_exists and v_exists.user_id != user.id:
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a este video")
+
+    video: Optional[Video] = (
+        db.query(Video)
+        .filter(Video.id == video_id, Video.user_id == user.id)
+        .first()
+    )
+    if not video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video no encontrado")
+
+    status_value = video.status.value if isinstance(video.status, VideoStatus) else str(video.status)
+    return {
+        "id": video.id,
+        "title": video.title,
+        "status": status_value,
+        "uploaded_at": video.uploaded_at,
+        "processed_at": video.processed_at,
+        "original_url": video.original_url,
+        "processed_url": video.processed_url if status_value.lower() == "processed" else None,
+    }
