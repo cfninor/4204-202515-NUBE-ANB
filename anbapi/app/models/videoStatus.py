@@ -1,9 +1,7 @@
-from enum import Enum
+import enum
 
 
-class VideoStatus(str, Enum):
+class VideoStatus(str, enum.Enum):
     UPLOADED = "uploaded"
     PROCESSED = "processed"
-    PUBLISHED = "published"
-    VOTING = "voting"
     FAILED = "failed"
