@@ -22,6 +22,8 @@ router = APIRouter(prefix="/api/videos", tags=["videos"])
 bearer = HTTPBearer()
 storage = LocalStorage()
 
+MAX_FILE_SIZE_MB = 100
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload(
@@ -32,7 +34,17 @@ async def upload(
     db: Session = Depends(get_db),
 ):
     if video_file.content_type not in {"video/mp4", "application/octet-stream"}:
-        raise HTTPException(status_code=400, detail="Solo se permite MP4")
+        raise HTTPException(status_code=400, detail="Error en el archivo (tipo inválido).")
+    
+    video_file.file.seek(0, 2)  
+    size = video_file.file.tell()
+    video_file.file.seek(0)     
+    if size > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="Error en el archivo (tamaño inválido)."
+        )
+
 
     vid = f"{uuid.uuid4()}.mp4"
     path = storage.save(vid, video_file.file)
