@@ -79,6 +79,22 @@ def list_videos(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from datetime import timezone
+
+    def to_iso(dt):
+        if not dt:
+            return None
+        # Formato como en el documento de respuesta
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    def status_str(s):
+        # Normalización de minúsculas
+        if isinstance(s, VideoStatus):
+            # Enum('UPLOADED','PROCESSED') -> 'uploaded'/'processed'
+            return (getattr(s, "name", None) or getattr(s, "value", str(s))).lower()
+        return str(s).lower()
 
     videos: List[Video] = (
         db.query(Video)
@@ -87,18 +103,24 @@ def list_videos(
         .all()
     )
 
-    def to_item(v: Video):
-        status_value = v.status.value if isinstance(v.status, VideoStatus) else str(v.status)
-        return {
-            "id": v.id,
+    response = []
+    for v in videos:
+        s = status_str(v.status)
+        item = {
+            "video_id": str(v.id),
             "title": v.title,
-            "status": status_value,
-            "uploaded_at": v.uploaded_at,
-            "processed_at": v.processed_at,
-            "processed_url": v.processed_url if status_value.lower() == "processed" else None,
+            "status": s,
+            "uploaded_at": to_iso(v.uploaded_at),
+            "processed_at": to_iso(v.processed_at),
         }
 
-    return [to_item(v) for v in videos]
+        # processed_url solo si está listo (como exige el documento)
+        if s == "processed" and v.processed_url:
+            item["processed_url"] = v.processed_url
+        response.append(item)
+
+    return response
+
 
 # ---------------------- GET /api/videos/{video_id} ----------------------
 @router.get("/{video_id}", status_code=status.HTTP_200_OK)
@@ -107,10 +129,28 @@ def get_video_detail(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from datetime import timezone
 
+    def to_iso(dt):
+        if not dt:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    def status_str(s):
+        if isinstance(s, VideoStatus):
+            return (getattr(s, "name", None) or getattr(s, "value", str(s))).lower()
+        return str(s).lower()
+
+    # Existe?
     v_exists = db.query(Video).filter(Video.id == video_id).first()
     if v_exists and v_exists.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a este video")
+        # 403 según tabla de respuestas
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="El usuario autenticado no tiene permisos para acceder a este video (no es el propietario).",
+        )
 
     video: Optional[Video] = (
         db.query(Video)
@@ -118,15 +158,23 @@ def get_video_detail(
         .first()
     )
     if not video:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video no encontrado")
+        # 404 según tabla de respuestas
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El video con el video_id especificado no existe o no pertenece al usuario.",
+        )
 
-    status_value = video.status.value if isinstance(video.status, VideoStatus) else str(video.status)
-    return {
-        "id": video.id,
+    s = status_str(video.status)
+    body = {
+        "video_id": str(video.id),
         "title": video.title,
-        "status": status_value,
-        "uploaded_at": video.uploaded_at,
-        "processed_at": video.processed_at,
+        "status": s,
+        "uploaded_at": to_iso(video.uploaded_at),
+        "processed_at": to_iso(video.processed_at),
         "original_url": video.original_url,
-        "processed_url": video.processed_url if status_value.lower() == "processed" else None,
+        "votes": video.votes if hasattr(video, "votes") else None,
     }
+    if s == "processed" and video.processed_url:
+        body["processed_url"] = video.processed_url
+
+    return body
