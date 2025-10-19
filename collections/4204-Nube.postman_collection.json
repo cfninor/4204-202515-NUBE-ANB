@@ -1,0 +1,185 @@
+{
+	"info": {
+		"_postman_id": "b9d781cd-fd74-41a7-b35a-410be4708412",
+		"name": "4204-Nube",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27887927",
+		"_collection_link": "https://pruebas-7679.postman.co/workspace/Pruebas~14d206b8-4aa9-44ff-9e75-93f37f86d361/collection/27887927-b9d781cd-fd74-41a7-b35a-410be4708412?action=share&source=collection_link&creator=27887927"
+	},
+	"item": [
+		{
+			"name": "ANB",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "SignUp",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"first_name\": \"Carlos\",\r\n  \"last_name\": \"Nino\",\r\n  \"email\": \"carnino@gmail.com\",\r\n  \"username\": \"cnino\",\r\n  \"password\": \"12345678\",\r\n  \"password2\": \"12345678\",\r\n  \"city\": \"Bogota\",\r\n  \"country\": \"Colombia\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost/api/auth/signup",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"auth",
+										"signup"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();\r",
+											"pm.globals.set(\"access_token\", response.access_token);\r",
+											"console.log(\"Access token guardado:\", response.access_token);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"email\": \"carnino@gmail.com\",\r\n  \"password\": \"12345678\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost/api/auth/login",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Generales",
+					"item": [
+						{
+							"name": "Metricas",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/metrics",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"metrics"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Salud",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/health",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Video",
+					"item": [
+						{
+							"name": "Upload",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "Prueba video",
+											"type": "text"
+										},
+										{
+											"key": "video_file",
+											"type": "file",
+											"src": "/C:/Users/fnino/Downloads/10448971-hd_1920_1080_30fps.mp4"
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost/api/videos/upload",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"videos",
+										"upload"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}
