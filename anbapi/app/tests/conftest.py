@@ -19,6 +19,7 @@ _setup_path()
 
 from database import Base, get_db # noqa: E402
 from services.auth import router as auth_router # noqa: E402
+from services.video import router as video_router # noqa: E402
 
 load_dotenv()
 
@@ -70,6 +71,7 @@ def db_session():
 def app(db_session):
     app = FastAPI()
     app.include_router(auth_router)
+    app.include_router(video_router)
 
     def override_get_db():
         yield db_session
