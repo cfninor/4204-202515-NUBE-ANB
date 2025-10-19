@@ -33,13 +33,22 @@
 │   │   │   └── 📜 auth.py
 │   │   ├── 📂 services/                 # Servicios
 │   │   │   ├── 📜 __init__.py
-│   │   │   └── 📜 auth.py
+│   │   │   ├── 📜 auth.py
+│   │   │   └── 📜 video.py
+│   │   ├── 📂 storage_a/                # Abstracción lógica storage
+│   │   │   ├── 📜 base.py
+│   │   │   └── 📜 local.py
 │   │   ├── 📂 test/                     # Pruebas unitarias
 │   │   │   ├── 📜 conftest.py
-│   │   │   └── 📜 test_auth.py
+│   │   │   ├── 📜 test_auth.py
+│   │   │   ├── 📜 test_security.py
+│   │   │   ├── 📜 test_task.py
+│   │   │   └── 📜 test_video.py
 │   │   ├── 📂 workers/                  # Workers - RabbitMQ, tareas pesadas
-│   │   │   └── 📜 __init__.py
-│   │   ├── 📜 __init__.py               
+│   │   │   ├── 📜 __init__.py
+│   │   │   └── 📜 tasks.py
+│   │   ├── 📜 __init__.py    
+│   │   ├── 📜 celery_app.py                # Configuración celery            
 │   │   ├── 📜 config.py                    # Configuración global (variables, entorno)
 │   │   ├── 📜 database.py                  # Conexión y manejo de la base de datos
 │   │   ├── 📜 logging_config.py            # Configuración de logs
@@ -58,6 +67,7 @@
 │   └── 📂 Entrega_1/                   # Entrega 1 - Sustentación
 ├── 📜 .coveragerc                      # Configuración de cobertura
 ├── 📜 .env.example                     # Ejemplo de variables de entorno
+├── 📜 .env.example.local               # Ejemplo de variables de entorno local
 ├── 📜 .gitignore                       # Archivos/carpetas ignoradas por Git
 ├── 📜 docker-compose.yml               # Orquestación de contenedores (API, DB, Redis, etc.)
 ├── 📜 pytest.ini                       # Configuración pruebas
