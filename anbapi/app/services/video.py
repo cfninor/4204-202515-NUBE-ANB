@@ -110,7 +110,7 @@ def get_video_detail(
 
     v_exists = db.query(Video).filter(Video.id == video_id).first()
     if v_exists and v_exists.user_id != user.id:
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a este video")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a este video")
 
     video: Optional[Video] = (
         db.query(Video)
