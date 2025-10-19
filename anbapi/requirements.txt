@@ -19,3 +19,4 @@ slowapi
 prometheus-fastapi-instrumentator
 faker
 psycopg[binary]
+python-multipart

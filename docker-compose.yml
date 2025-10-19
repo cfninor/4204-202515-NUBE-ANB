@@ -58,3 +58,17 @@ services:
     ports: [ "8000:8000" ]
     command: >
       sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --max-requests 2000 --max-requests-jitter 200"
+
+  worker:
+    build:
+      context: .
+      dockerfile: anbapi/Dockerfile
+    env_file: .env
+    depends_on: [ pgbouncer, rabbitmq, redis ]
+    working_dir: /app/app                 
+    environment:
+      PYTHONPATH: /app                    
+    volumes:
+      - ./anbapi/app/storage:/app/app/storage
+    command: python -m celery -A celery_app:celery worker -l info --concurrency=2
+

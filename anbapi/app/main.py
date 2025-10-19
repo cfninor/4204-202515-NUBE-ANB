@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from logging_config import configure_logging
 from prometheus_fastapi_instrumentator import Instrumentator
-from services import auth
+from services import auth, video
 
 logger = logging.getLogger("main")
 
@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, title=config.__class__.__name__, version="1.0.0")
 app.add_middleware(CorrelationIdMiddleware)
 app.include_router(auth.router)
+app.include_router(video.router)
 
 
 @app.exception_handler(HTTPException)
