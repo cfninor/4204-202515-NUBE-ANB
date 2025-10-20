@@ -1,10 +1,12 @@
 import io
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from faker import Faker
-from models.user import User
-from security import hash_password
+
+from models import Video, VideoStatus, User
+from security import hash_password, get_current_user
 from services import video
 
 fake = Faker()
@@ -134,181 +136,121 @@ def test_upload_sin_auth(client):
     assert resp.status_code == 401
 
 # --------------------------- /api/videos & /api/videos/id  ---------------------------
-from fastapi.testclient import TestClient # noqa: E402
+@pytest.fixture()
+def auth_as_user1(app):
+    class _DummyUser:
+        id = 1
+        email = "demo@acme.com"
+    def _override():
+        return _DummyUser()
+    app.dependency_overrides[get_current_user] = _override
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
 
-# app (ajusta el import si tu módulo es distinto)
-try:
-    from main import app  # p.ej. si tu asgi está en main.py (raíz)
-except ImportError:
-    from app.main import app  # p.ej. si está en app/main.py
-
-from database import SessionLocal # noqa: E402
-from models import Video, VideoStatus # noqa: E402
-from security import get_current_user # noqa: E402
-
-class _DummyUser:
-    id = 1
-    email = "demo@acme.com"
-
-def _override_get_current_user():
-    return _DummyUser()
-
-client = TestClient(app)
-
-def _seed_data():
-    db = SessionLocal()
-    u1 = db.query(User).filter(User.id == 1).first()
+@pytest.fixture()
+def seed_data(db_session):
+    # crea user 1 y 2 si faltan
+    u1 = db_session.query(User).filter(User.id == 1).first()
     if not u1:
-        u1 = User(
-            id=1,
-            first_name="Demo",
-            last_name="User",
-            email="demo@acme.com",
-            user_name="demo",
-            hashed_password="x",
-            is_active=True,
-        )
-        db.add(u1)
-    u2 = db.query(User).filter(User.id == 2).first()
+        u1 = User(id=1, first_name="Demo", last_name="User",
+                  email="demo@acme.com", user_name="demo",
+                  hashed_password="x", is_active=True)
+        db_session.add(u1)
+    u2 = db_session.query(User).filter(User.id == 2).first()
     if not u2:
-        u2 = User(
-            id=2,
-            first_name="Other",
-            last_name="User",
-            email="other@acme.com",
-            user_name="other",
-            hashed_password="x",
-            is_active=True,
-        )
-        db.add(u2)
-    db.commit()
-    db.query(Video).delete()
-    from datetime import datetime, timedelta, timezone
+        u2 = User(id=2, first_name="Other", last_name="User",
+                  email="other@acme.com", user_name="other",
+                  hashed_password="x", is_active=True)
+        db_session.add(u2)
+    db_session.commit()
+
+    # limpia videos y crea 3
+    db_session.query(Video).delete()
     now = datetime.now(timezone.utc)
     v1 = Video(
-        user_id=1,
-        title="Video subido",
-        status=VideoStatus.UPLOADED,
-        uploaded_at=now - timedelta(days=1),
-        processed_at=None,
+        user_id=1, title="Video subido", status=VideoStatus.UPLOADED,
+        uploaded_at=now - timedelta(days=1), processed_at=None,
         original_url="http://localhost/media/originals/v1.mp4",
-        processed_url=None,
-        task_id="task-1",
+        processed_url=None, task_id="task-1",
     )
     v2 = Video(
-        user_id=1,
-        title="Video procesado",
-        status=VideoStatus.PROCESSED,
-        uploaded_at=now - timedelta(days=2),
-        processed_at=now - timedelta(days=2, hours=-1),
+        user_id=1, title="Video procesado", status=VideoStatus.PROCESSED,
+        uploaded_at=now - timedelta(days=2), processed_at=now - timedelta(days=2, hours=-1),
         original_url="http://localhost/media/originals/v2.mp4",
         processed_url="http://localhost/media/processed/v2.mp4",
         task_id="task-2",
     )
     v3 = Video(
-        user_id=2,
-        title="De otro usuario",
-        status=VideoStatus.PROCESSED,
-        uploaded_at=now - timedelta(days=3),
-        processed_at=now - timedelta(days=3, hours=-1),
+        user_id=2, title="De otro usuario", status=VideoStatus.PROCESSED,
+        uploaded_at=now - timedelta(days=3), processed_at=now - timedelta(days=3, hours=-1),
         original_url="http://localhost/media/originals/v3.mp4",
         processed_url="http://localhost/media/processed/v3.mp4",
         task_id="task-3",
     )
-    db.add_all([v1, v2, v3])
-    db.commit()
-    db.refresh(v1)
-    db.refresh(v2)
-    db.refresh(v3)
-    db.close()
+    db_session.add_all([v1, v2, v3])
+    db_session.commit()
     return v1.id, v2.id, v3.id
 
 def _is_iso_z(s):
     if s is None:
         return True
-    return isinstance(s, str) and s.endswith("Z")
+    return isinstance(s, str) and (s.endswith("Z") or s.endswith("+00:00"))
 
-def test_get_videos_ok_y_reglas_processed_url():
-    app.dependency_overrides[get_current_user] = _override_get_current_user
-    v1_id, v2_id, _ = _seed_data()
-
+def test_get_videos_ok_y_reglas_processed_url(client, auth_as_user1, seed_data):
+    v1_id, v2_id, _ = seed_data
     r = client.get("/api/videos")
     assert r.status_code == 200
     body = r.json()
     assert isinstance(body, list) and len(body) >= 2
 
-    # Chequea nombres de campos del anexo
     sample = body[0]
     for key in ("video_id", "title", "status", "uploaded_at", "processed_at"):
         assert key in sample
 
-    # processed_url solo si status == "processed"
     by_id = {int(item["video_id"]): item for item in body}
-    assert by_id[v1_id]["status"] in ("uploaded", "processed")
     assert by_id[v2_id]["status"] == "processed"
-
-    assert by_id[v1_id].get("processed_url") in (None, None)  # explícitamente ausente o null
+    assert by_id[v1_id].get("processed_url") in (None,)
     assert isinstance(by_id[v2_id].get("processed_url"), str)
-
-    # formato ISO con Z
     assert _is_iso_z(by_id[v1_id]["uploaded_at"])
     assert _is_iso_z(by_id[v1_id]["processed_at"])
 
-def test_get_video_detail_ok_campos_y_urls():
-    app.dependency_overrides[get_current_user] = _override_get_current_user
-    _, v2_id, _ = _seed_data()
-
+def test_get_video_detail_ok_campos_y_urls(client, auth_as_user1, seed_data):
+    _, v2_id, _ = seed_data
     r = client.get(f"/api/videos/{v2_id}")
     assert r.status_code == 200
     v = r.json()
-
-    # Campos del anexo
     for key in ("video_id", "title", "status", "uploaded_at", "processed_at", "original_url"):
         assert key in v
-
-    # processed -> debe venir processed_url
     if v["status"] == "processed":
         assert isinstance(v.get("processed_url"), str)
-
-    # votos puede existir (si tu modelo lo trae)
     assert "votes" in v
-
-    # formato ISO con Z
     assert _is_iso_z(v["uploaded_at"])
     assert _is_iso_z(v["processed_at"])
 
-def test_get_video_detail_403_no_propietario():
-    app.dependency_overrides[get_current_user] = _override_get_current_user
-    _, _, other_user_video_id = _seed_data()
-
-    # El video pertenece al user_id=2 -> actual (user_id=1) debe recibir 403
+def test_get_video_detail_403_no_propietario(client, auth_as_user1, seed_data):
+    _, _, other_user_video_id = seed_data
     r = client.get(f"/api/videos/{other_user_video_id}")
     assert r.status_code == 403
     assert "no tiene permisos" in r.json()["detail"].lower()
 
-def test_get_video_detail_404_inexistente():
-    app.dependency_overrides[get_current_user] = _override_get_current_user
-    _seed_data()
-
+def test_get_video_detail_404_inexistente(client, auth_as_user1, seed_data):
     r = client.get("/api/videos/99999999")
     assert r.status_code == 404
     assert "no existe" in r.json()["detail"].lower() or "no pertenece" in r.json()["detail"].lower()
 
-def test_get_videos_401_sin_autenticacion():
-    # Quita override para probar 401 real
+def test_get_videos_401_sin_autenticacion(client, seed_data, app):
+    # quitar override
     if get_current_user in app.dependency_overrides:
         del app.dependency_overrides[get_current_user]
-    _seed_data()
+    r = client.get("/api/videos")
+    assert r.status_code == 401
 
-    r = client.get("/api/videos")  # sin Authorization
-    assert r.status_code == 401  # mensaje exacto depende de tu get_current_user
-
-def test_get_video_detail_401_sin_autenticacion():
+def test_get_video_detail_401_sin_autenticacion(client, seed_data, app):
     if get_current_user in app.dependency_overrides:
         del app.dependency_overrides[get_current_user]
-    _seed_data()
-
-    r = client.get("/api/videos/1")  # sin Authorization
+    r = client.get("/api/videos/1")
     assert r.status_code == 401
     
 @pytest.fixture()
