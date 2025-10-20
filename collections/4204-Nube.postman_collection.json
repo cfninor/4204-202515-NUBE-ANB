@@ -1,10 +1,11 @@
 {
 	"info": {
-		"_postman_id": "b9d781cd-fd74-41a7-b35a-410be4708412",
-		"name": "4204-Nube",
+		"_postman_id": "b6c4767e-0661-4159-8bce-63ed68545ddf",
+		"name": "4204-Nube-Documentada",
+		"description": "# ANB Rising Stars API — Documentación\n\nAPI para registro y autenticación de jugadores, carga y **procesamiento asíncrono** de videos, votación pública y ranking.\n\n## Autenticación\n- **JWT Bearer** para rutas protegidas (envía `Authorization: Bearer {{access_token}}`).  \n- En rutas autenticadas **no** se envía email en body o query; la identidad se toma del **token**.\n\n## Flujo recomendado\n1) `Auth → Login` para obtener `{{access_token}}`.  \n2) `Video → Upload` y luego `Video → GetVideos` / `GetVideoId`.  \n3) Público: `Public → Videos`, `Vote`, `Ranking`.\n",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "27887927",
-		"_collection_link": "https://pruebas-7679.postman.co/workspace/Pruebas~14d206b8-4aa9-44ff-9e75-93f37f86d361/collection/27887927-b9d781cd-fd74-41a7-b35a-410be4708412?action=share&source=collection_link&creator=27887927"
+		"_exporter_id": "45052053",
+		"_collection_link": "https://winter-shadow-2225599.postman.co/workspace/Procesos-Agiles~9db7e112-d5b1-4ad7-be87-33253c7162ba/collection/45052053-b6c4767e-0661-4159-8bce-63ed68545ddf?action=share&source=collection_link&creator=45052053"
 	},
 	"item": [
 		{
@@ -38,7 +39,8 @@
 										"auth",
 										"signup"
 									]
-								}
+								},
+								"description": "### POST /api/auth/signup — Registro de jugadores\nCrea una cuenta de jugador. **Valida email único** y **confirmación de contraseña**.\n\n**Body (JSON):**\n```json\n{ \"first_name\": \"...\", \"last_name\": \"...\", \"email\": \"...\", \"username\": \"...\",\n  \"password\": \"...\", \"password2\": \"...\", \"city\": \"...\", \"country\": \"...\" }\n```\n\n**Respuestas:** 201 creado; 400 validación.\n"
 							},
 							"response": []
 						},
@@ -82,11 +84,13 @@
 										"auth",
 										"login"
 									]
-								}
+								},
+								"description": "### POST /api/auth/login — Autenticación\nAutentica al usuario y retorna **token JWT** para siguientes solicitudes.\n\n**Body (JSON):**\n```json\n{ \"email\": \"...\", \"password\": \"...\" }\n```\n\n**Respuesta exitosa (ejemplo):**\n```json\n{ \"access_token\": \"<jwt>\", \"token_type\": \"bearer\", \"expires_in\": 3600 }\n```"
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "## Carpeta Auth\n\nRegistro y autenticación de usuarios mediante JWT."
 				},
 				{
 					"name": "Generales",
@@ -105,7 +109,8 @@
 									"path": [
 										"metrics"
 									]
-								}
+								},
+								"description": "### GET /metrics — Métricas del servicio\n\nExposición de métricas"
 							},
 							"response": []
 						},
@@ -123,11 +128,13 @@
 									"path": [
 										"health"
 									]
-								}
+								},
+								"description": "### GET /health — Salud del servicio\nVerificación de disponibilidad/liveness."
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "## Carpeta Generales\n\nEndpoints de salud y métricas del servicio."
 				},
 				{
 					"name": "Video",
@@ -173,7 +180,8 @@
 										"videos",
 										"upload"
 									]
-								}
+								},
+								"description": "### POST /api/videos/upload — Subir video (requiere JWT)\nPermite subir un **video MP4** (máx. 100MB) y **dispara el procesamiento asíncrono** (recorte a 30s, 16:9 a 720p, cortinilla/logo ANB, sin audio).\n\n**form-data:**\n- `title` (string) — título del video.\n- `video_file` (file, mp4) — archivo de video.\n\n**Respuesta (ejemplo):**\n```json\n{ \"message\": \"Video subido correctamente. Procesamiento en curso.\", \"task_id\": \"123456\" }\n```\n\n**Códigos:** 201 creado; 400 tipo/tamaño inválido; 401 falta de autenticación.\n"
 							},
 							"response": []
 						},
@@ -202,15 +210,103 @@
 										"api",
 										"videos"
 									]
-								}
+								},
+								"description": "### GET /api/videos — Mis videos (requiere JWT)\n\nLista los videos del usuario con su **estado** (`uploaded` | `processed`) y fechas. Si está procesado, incluye URL de acceso.\n\n**Respuesta (ejemplo):**\n\n``` json\n[\n  { \"video_id\": \"123456\", \"title\": \"Mi mejor tiro de 3\", \"status\": \"processed\",\n    \"uploaded_at\": \"2025-03-10T14:30:00Z\", \"processed_at\": \"2025-03-10T14:35:00Z\",\n    \"processed_url\": \"https://anb.com/videos/processed/123456.mp4\" },\n  { \"video_id\": \"654321\", \"title\": \"Habilidades de dribleo\", \"status\": \"uploaded\",\n    \"uploaded_at\": \"2025-03-11T10:15:00Z\" }\n]\n\n ```\n\n**Códigos:** 200 OK; 401 Unauthorized."
+							},
+							"response": []
+						},
+						{
+							"name": "5. GetVideoId",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/api/videos/10000",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"videos",
+										"10000"
+									]
+								},
+								"description": "### GET /api/videos/{video_id} — Detalle de mi video (requiere JWT)\nDevuelve el detalle del video, incluyendo `original_url` y `processed_url` si el procesamiento terminó, además de `votes`.\n\n**Respuesta (ejemplo):**\n```json\n{ \"video_id\": \"a1b2c3d4\", \"title\": \"Tiros de tres en movimiento\", \"status\": \"processed\",\n  \"uploaded_at\": \"2025-03-15T14:22:00Z\", \"processed_at\": \"2025-03-15T15:10:00Z\",\n  \"original_url\": \"https://anb.com/uploads/a1b2c3d4.mp4\",\n  \"processed_url\": \"https://anb.com/processed/a1b2c3d4.mp4\", \"votes\": 125 }\n```\n\n**Códigos:** 200 OK; 401/403/404 según autenticación y propiedad.\n"
+							},
+							"response": []
+						},
+						{
+							"name": "6. DeleteVideo",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/api/videos/{video_id}",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"videos",
+										"{video_id}"
+									]
+								},
+								"description": "### DELETE /api/videos/{video_id} — Eliminar mi video (requiere JWT)\nElimina el video (original y procesado) **solo si** no ha sido publicado para votación o aún no ha sido procesado.\n\n**Respuesta (ejemplo):**\n```json\n{ \"message\": \"El video ha sido eliminado exitosamente.\", \"video_id\": \"a1b2c3d4\" }\n```\n\n**Códigos:** 200 OK; 400 no cumple condiciones; 401/403/404 según autenticación, permisos o inexistencia.\n"
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "## Carpeta Video\n\nGestión de videos propios del usuario autenticado (upload, lista, detalle, eliminación)."
 				},
 				{
 					"name": "Public",
 					"item": [
+						{
+							"name": "7. Videos",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/api/public/videos",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"public",
+										"videos"
+									]
+								},
+								"description": "### GET /api/public/videos — Listado público\nLista los videos públicos disponibles para votación. No requiere autenticación para lectura.\n"
+							},
+							"response": []
+						},
 						{
 							"name": "8. Vote",
 							"request": {
@@ -239,11 +335,37 @@
 										"10000",
 										"vote"
 									]
-								}
+								},
+								"description": "### POST /api/public/videos/{video_id}/vote — Votar (requiere JWT)\n\nRegistra **un voto por usuario por video**.\n\n**Respuesta (ejemplo):**\n\n``` json\n{ \"message\": \"Voto registrado exitosamente.\" }\n\n ```\n\n**Códigos:** 200 voto exitoso; 400 ya votaste por este video; 404 video no encontrado; 401 falta autenticación."
+							},
+							"response": []
+						},
+						{
+							"name": "9. Ranking",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/api/public/ranking",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"public",
+										"ranking"
+									]
+								},
+								"description": "### GET /api/public/ranking — Ranking de jugadores\nDevuelve la tabla de clasificación por votos. Recomendado **caching** (ej. Redis, TTL 1–5 min) o vista materializada si el volumen crece.\n\n**Respuesta (ejemplo):**\n```json\n[ { \"position\": 1, \"username\": \"superplayer\", \"city\": \"Bogotá\", \"votes\": 1530 },\n  { \"position\": 2, \"username\": \"nextstar\", \"city\": \"Bogotá\", \"votes\": 1495 } ]\n```\n"
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "## Carpeta Public\n\nListado público, votación y ranking."
 				}
 			]
 		}
