@@ -132,3 +132,91 @@ def test_upload_sin_auth(client):
     data = {"title": "x"}
     resp = client.post("/api/videos/upload", files=files, data=data)
     assert resp.status_code == 401
+
+@pytest.fixture()
+def mock_storage_delete(monkeypatch):
+    def _fake_delete(path):
+        print(f"Faking delete for {path}")
+        return
+
+    monkeypatch.setattr(video.storage, "delete", _fake_delete)
+    return _fake_delete
+
+@pytest.fixture()
+def test_video(db_session, test_user):
+    from models import Video, VideoStatus
+    v = Video(
+        user_id=test_user.id,
+        title="video de prueba",
+        original_url="/fake/storage/video.mp4",
+        status=VideoStatus.PROCESSED,
+        task_id="fake_task_id"
+    )
+    db_session.add(v)
+    db_session.commit()
+    db_session.refresh(v)
+    return v
+
+def test_delete_video_ok(client, auth_user_override, test_video, mock_storage_delete, db_session):
+    video_id = test_video.id
+    resp = client.delete(f"/api/videos/{video_id}")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "message" in body
+    assert "eliminado exitosamente" in body["message"]
+    assert body["video_id"] == str(video_id)
+
+    from models import Video
+    deleted_video = db_session.query(Video).filter(Video.id == video_id).first()
+    assert deleted_video is None
+
+def test_delete_video_not_found(client, auth_user_override, mock_storage_delete):
+    video_id = 999999  # Use a non-existent integer ID
+    resp = client.delete(f"/api/videos/{video_id}")
+    assert resp.status_code == 404
+
+def test_delete_video_unauthorized(client, test_video):
+    video_id = test_video.id
+    resp = client.delete(f"/api/videos/{video_id}")
+    assert resp.status_code == 401
+
+@pytest.fixture()
+def other_user(db_session):
+    first = fake.first_name()
+    last = fake.last_name()
+    username = f"{first.lower()}.{last.lower()}"
+    email = fake.unique.email()
+    password = fake.password(length=12)
+    hashed_pwd = hash_password(password)
+    u = User(
+        first_name=first,
+        last_name=last,
+        email=email,
+        user_name=username,
+        hashed_password=hashed_pwd,
+    )
+    db_session.add(u)
+    db_session.commit()
+    db_session.refresh(u)
+    return u
+
+@pytest.fixture()
+def other_video(db_session, other_user):
+    from models import Video, VideoStatus
+    v = Video(
+        user_id=other_user.id,
+        title="video ajeno",
+        original_url="/fake/storage/video_ajeno.mp4",
+        status=VideoStatus.PROCESSED,
+        task_id="fake_task_id_other"
+    )
+    db_session.add(v)
+    db_session.commit()
+    db_session.refresh(v)
+    return v
+
+def test_delete_video_not_owned(client, auth_user_override, other_video, mock_storage_delete):
+    video_id = other_video.id
+    resp = client.delete(f"/api/videos/{video_id}")
+    assert resp.status_code == 404 # The service returns 404 in this case
