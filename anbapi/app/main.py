@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from logging_config import configure_logging
 from prometheus_fastapi_instrumentator import Instrumentator
-from services import auth, video, public
+from services import auth, video, public, public_video, public_ranking
 
 logger = logging.getLogger("main")
 
@@ -27,6 +27,8 @@ app.add_middleware(CorrelationIdMiddleware)
 app.include_router(auth.router)
 app.include_router(video.router)
 app.include_router(public.router)
+app.include_router(public_video.router)
+app.include_router(public_ranking.router)
 
 
 @app.exception_handler(HTTPException)

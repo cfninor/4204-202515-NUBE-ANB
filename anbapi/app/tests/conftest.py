@@ -21,6 +21,8 @@ from database import Base, get_db # noqa: E402
 from services.auth import router as auth_router # noqa: E402
 from services.video import router as video_router # noqa: E402
 from services.public import router as public_router # noqa: E402
+from services.public_video import router as public_video_router # noqa: E402
+from services.public_ranking import router as public_ranking_router # noqa: E402
 
 load_dotenv()
 
@@ -74,6 +76,8 @@ def app(db_session):
     app.include_router(auth_router)
     app.include_router(video_router)
     app.include_router(public_router)
+    app.include_router(public_video_router)
+    app.include_router(public_ranking_router)
 
     def override_get_db():
         yield db_session
