@@ -157,7 +157,7 @@ def get_video_detail(
         "uploaded_at": to_iso(video.uploaded_at),
         "processed_at": to_iso(video.processed_at),
         "original_url": video.original_url,
-        "votes": video.votes if hasattr(video, "votes") else None,
+        "votes": len(video.votes) if hasattr(video, "votes") else 0,
     }
     if s == "processed" and video.processed_url:
         body["processed_url"] = video.processed_url
