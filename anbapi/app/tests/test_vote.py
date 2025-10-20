@@ -83,6 +83,6 @@ def test_vote_unauthenticated(client, created_video):
 
 
 def test_vote_not_found(client, auth_user_override):
-    resp = client.post(f"/api/public/videos/9999999/vote")
+    resp = client.post("/api/public/videos/9999999/vote")
     assert resp.status_code == 404
     assert "no encontrado" in resp.text.lower()

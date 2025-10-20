@@ -9,7 +9,7 @@ from models import User
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-AUTH_ERROR_MSG = "Falta de autenticación."
+AUTH_ERROR_MSG = "El usuario no está autenticado o el token JWT es inválido o expirado."
 
 pwd = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 

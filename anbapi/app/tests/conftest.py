@@ -53,22 +53,26 @@ def create_schema():
 @pytest.fixture()
 def db_session():
     connection = engine.connect()
-    transaction = connection.begin()
+    trans = connection.begin()
     session = TestingSessionLocal(bind=connection)
     session.begin_nested()
 
     @event.listens_for(session, "after_transaction_end")
-    def restart_savepoint(sess, trans):
-        if trans.nested and not trans._parent.nested:
+    def restart_savepoint(sess, t):
+        if t.nested and t._parent is not None and not t._parent.nested:
             sess.begin_nested()
 
     try:
         yield session
     finally:
+        if session.is_active:
+            session.rollback()
         session.close()
-        transaction.rollback()
-        connection.close()
+        
+        if trans.is_active:
+            trans.rollback()
 
+        connection.close()
 
 @pytest.fixture()
 def app(db_session):
