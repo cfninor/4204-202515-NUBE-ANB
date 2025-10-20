@@ -143,7 +143,7 @@ Evaluar el comportamiento y desempeño de la aplicación FastAPI bajo carga extr
 ## Métricas Clave Obtenidas
 ### Volumen de Solicitudes
 * Total de muestras: Datos no especificados en el reporte
-* Tasa de error: 432% (❌ CRÍTICO)
+* Tasa de error: 4,32%
 * Throughput: 30.3 solicitudes/minuto
 
 ### Rendimiento y Transferencia de Datos
