@@ -14,7 +14,7 @@
 					"name": "Auth",
 					"item": [
 						{
-							"name": "SignUp",
+							"name": "1. SignUp",
 							"request": {
 								"method": "POST",
 								"header": [],
@@ -43,7 +43,7 @@
 							"response": []
 						},
 						{
-							"name": "Login",
+							"name": "2. Login",
 							"event": [
 								{
 									"listen": "test",
@@ -133,7 +133,7 @@
 					"name": "Video",
 					"item": [
 						{
-							"name": "Upload",
+							"name": "3. Upload",
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -152,13 +152,13 @@
 									"formdata": [
 										{
 											"key": "title",
-											"value": "Prueba video",
+											"value": "Video_cnino",
 											"type": "text"
 										},
 										{
 											"key": "video_file",
 											"type": "file",
-											"src": "/C:/Users/fnino/Downloads/10448971-hd_1920_1080_30fps.mp4"
+											"src": "/C:/Users/fnino/Downloads/17288773-hd_1920_1080_30fps.mp4"
 										}
 									]
 								},
@@ -172,6 +172,72 @@
 										"api",
 										"videos",
 										"upload"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "4. GetVideos",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/api/videos",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"videos"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Public",
+					"item": [
+						{
+							"name": "8. Vote",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost/api/public/videos/10000/vote",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"path": [
+										"api",
+										"public",
+										"videos",
+										"10000",
+										"vote"
 									]
 								}
 							},
