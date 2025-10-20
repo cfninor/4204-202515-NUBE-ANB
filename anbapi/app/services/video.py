@@ -75,10 +75,15 @@ async def delete_video(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    try:
+        video_id_int = int(video_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=404, detail="El video no existe.")
+
     # Buscar video que pertenezca al usuario autenticado
     video = (
         db.query(Video)
-        .filter(Video.id == video_id, Video.user_id == user.id)
+        .filter(Video.id == video_id_int, Video.user_id == user.id)
         .first()
     )
     if not video:
@@ -86,12 +91,12 @@ async def delete_video(
             status_code=404, detail="El video no existe o no pertenece al usuario."
         )
 
-    # Validar que el video no haya sido publicado o esté en votación
-    if video.status in [VideoStatus.PUBLISHED, VideoStatus.VOTING]:
-        raise HTTPException(
-            status_code=400,
-            detail="El video no puede eliminarse porque ya fue publicado para votación.",
-        )
+    # TODO: Validar que el video no haya sido publicado o esté en votación
+    # if video.status in [VideoStatus.PUBLISHED, VideoStatus.VOTING]:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="El video no puede eliminarse porque ya fue publicado para votación.",
+    #     )
 
     # Eliminar archivo físico (si existe)
     try:

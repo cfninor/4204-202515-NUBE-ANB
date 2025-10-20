@@ -20,3 +20,7 @@ class LocalStorage(Storage):
 
     def exists(self, key: str) -> bool:
         return os.path.exists(os.path.join(self.base_upload, key))
+
+    def delete(self, path: str) -> None:
+        if os.path.exists(path):
+            os.remove(path)
