@@ -29,7 +29,7 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 
 ## Sustentación
 
-El video de sustentación correspondiente a la Entrega 1 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_1`](./sustentacion/Entrega_1)
+El video de sustentación correspondiente a la Entrega 1 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_1`](./sustentacion/Entrega_1/sustentacion.md)
 
 ###  📁 Estructura del Proyecto
 
