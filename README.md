@@ -22,6 +22,7 @@
 | **Diagrama de Flujo de Procesos** | Explicación detallada del flujo de carga, procesamiento (workers), y entrega de los videos.                                                                                                  | [`/docs/Entrega_1/diagrama_flujo.md`](./docs/Entrega_1/diagrama_flujo.md)       |
 | **Despliegue y Documentación**    | Guía para la instalación, configuración de entorno, ejecución de contenedores Docker, y replicación del entorno local o en la nube.                                                          | [`/docs/Entrega_1/despliegue_y_documentacion.md`](./docs/Entrega_1/despliegue_y_documentacion.md) |
 | **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_1/sonarqube_report.md`](./docs/Entrega_1/sonarqube_report.md)                     |
+| **Pruebas de capacidad** | Evidencia de las pruebas de capacidad. | [`/docs/Entrega_1/pruebas_de_capacidad.md`](./docs/Entrega_1/pruebas_de_capacidad.md)                     |
 
 ## Colecciones de Postman
 
