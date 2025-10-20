@@ -13,6 +13,24 @@
 
 ---
 
+# Documentación Entrega 1
+| Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Modelo de Datos**               | Diagrama Entidad-Relación (ERD) que representa las entidades principales del sistema, sus atributos y relaciones.                                                                            | [`/docs/Entrega_1/modelo_de_datos.md`](./docs/Entrega_1/modelo_de_datos.md)                             |
+| **Documentación de la API**       | Descripción de los endpoints, parámetros, códigos de respuesta y ejemplos de uso. Incluye la colección de pruebas Postman.                                                                   | [`/docs/Entrega_1/documentacion_api.md`](./docs/Entrega_1/documentacion_api.md)                   |
+| **Diagrama de Componentes**       | Representación visual de la arquitectura: API (FastAPI), Worker (Celery), Broker (RabbitMQ), Cache (Redis) y Base de Datos (PostgreSQL con PgBouncer).                                       | [`/docs/Entrega_1/diagrama_componentes.md`](./docs/Entrega_1/diagrama_componentes.md)             |
+| **Diagrama de Flujo de Procesos** | Explicación detallada del flujo de carga, procesamiento (workers), y entrega de los videos.                                                                                                  | [`/docs/Entrega_1/diagrama_flujo.md`](./docs/Entrega_1/diagrama_flujo.md)       |
+| **Despliegue y Documentación**    | Guía para la instalación, configuración de entorno, ejecución de contenedores Docker, y replicación del entorno local o en la nube.                                                          | [`/docs/Entrega_1/despliegue_y_documentacion.md`](./docs/Entrega_1/despliegue_y_documentacion.md) |
+| **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_1/sonarqube_report.md`](./docs/Entrega_1/sonarqube_report.md)                     |
+
+## Colecciones de Postman
+
+Las colecciones y entornos se encuentran en el directorio  [`/collections`](./collections)
+
+## Sustentación
+
+El video de sustentación correspondiente a la Entrega 1 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_1`](./sustentacion/Entrega_1)
+
 ###  📁 Estructura del Proyecto
 
 ```
