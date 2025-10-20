@@ -30,10 +30,14 @@
 │   │   │   └── 📜 videoVote.py
 │   │   ├── 📂 schemas/                  # Schemas
 │   │   │   ├── 📜 __init__.py
-│   │   │   └── 📜 auth.py
+│   │   │   ├── 📜 auth.py
+│   │   │   └── 📜 video.py
 │   │   ├── 📂 services/                 # Servicios
 │   │   │   ├── 📜 __init__.py
 │   │   │   ├── 📜 auth.py
+│   │   │   ├── 📜 public_ranking.py
+│   │   │   ├── 📜 public_video.py
+│   │   │   ├── 📜 public.py
 │   │   │   └── 📜 video.py
 │   │   ├── 📂 storage_a/                # Abstracción lógica storage
 │   │   │   ├── 📜 base.py
@@ -41,9 +45,12 @@
 │   │   ├── 📂 test/                     # Pruebas unitarias
 │   │   │   ├── 📜 conftest.py
 │   │   │   ├── 📜 test_auth.py
+│   │   │   ├── 📜 test_public.py
+│   │   │   ├── 📜 test_ranking.py
 │   │   │   ├── 📜 test_security.py
 │   │   │   ├── 📜 test_task.py
-│   │   │   └── 📜 test_video.py
+│   │   │   ├── 📜 test_video.py
+│   │   │   └── 📜 test_vote.py
 │   │   ├── 📂 workers/                  # Workers - RabbitMQ, tareas pesadas
 │   │   │   ├── 📜 __init__.py
 │   │   │   └── 📜 tasks.py
