@@ -1,8 +1,9 @@
-# Flujo End-to-End de Carga, Procesamiento y Entrega de Videos
+# Diagrama de Flujo
 
 ![Diagrama de Flujo](img/DiagramaFlujo.png)
 
 Este documento describe el **flujo completo (end-to-end)** del sistema de carga, procesamiento y entrega de videos, implementado mediante una **API REST asíncrona con workers y cola de mensajes**.  
+
 El objetivo es representar gráficamente cómo los diferentes componentes interactúan desde el momento en que el usuario sube un archivo hasta que obtiene el video procesado.
 
 ---
