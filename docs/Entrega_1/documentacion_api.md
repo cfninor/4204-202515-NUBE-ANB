@@ -8,14 +8,12 @@
 
 ## 🧭 Índice
 
-1. [🔐 Autenticación](#-autenticación)
-2. [🎬 Gestión de Videos (Privado)](#-gestión-de-videos-privado)
-3. [🌎 Público / Votaciones / Ranking](#-público--votaciones--ranking)
-4. [🧾 Códigos de estado](#-códigos-de-estado-resumen)
-5. [🧱 Seguridad (JWT)](#-seguridad-jwt)
-6. [🧪 Postman / Newman](#-postman--newman)
-7. [🧵 Flujo de procesamiento](#-flujo-de-procesamiento-resumen)
-8. [📎 Especificación resumida de endpoints](#-especificación-resumida-de-endpoints)
+1. 🔐 Autenticación
+2. 🎬 Gestión de Videos (Privado)
+3. 🌎 Público / Votaciones / Ranking
+4. 🧾 Códigos de estado
+5. 🧱 Seguridad (JWT)
+6. 📎 Especificación resumida de endpoints
 
 ---
 
