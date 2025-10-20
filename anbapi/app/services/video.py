@@ -178,3 +178,50 @@ def get_video_detail(
         body["processed_url"] = video.processed_url
 
     return body
+
+@router.delete("/{video_id}", status_code=status.HTTP_200_OK)
+async def delete_video(
+    video_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        video_id_int = int(video_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=404, detail="El video no existe.")
+
+    # Buscar video que pertenezca al usuario autenticado
+    video = (
+        db.query(Video)
+        .filter(Video.id == video_id_int, Video.user_id == user.id)
+        .first()
+    )
+    if not video:
+        raise HTTPException(
+            status_code=404, detail="El video no existe o no pertenece al usuario."
+        )
+
+    # TODO: Validar que el video no haya sido publicado o esté en votación
+    # if video.status in [VideoStatus.PUBLISHED, VideoStatus.VOTING]:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="El video no puede eliminarse porque ya fue publicado para votación.",
+    #     )
+
+    # Eliminar archivo físico (si existe)
+    try:
+        storage.delete(video.original_url)
+        if video.processed_url:
+            storage.delete(video.processed_url)
+    except Exception as e:
+        # No detiene el flujo si el archivo ya no existe
+        print(f"Advertencia: no se pudo eliminar el archivo. Detalle: {e}")
+
+    # Eliminar de la base de datos
+    db.delete(video)
+    db.commit()
+
+    return {
+        "message": "El video ha sido eliminado exitosamente.",
+        "video_id": video_id,
+    }

@@ -134,8 +134,7 @@ def test_upload_sin_auth(client):
     assert resp.status_code == 401
 
 # --------------------------- /api/videos & /api/videos/id  ---------------------------
-from fastapi.testclient import TestClient
-from datetime import datetime, timedelta, timezone
+from fastapi.testclient import TestClient # noqa: E402
 
 # app (ajusta el import si tu módulo es distinto)
 try:
@@ -143,9 +142,9 @@ try:
 except ImportError:
     from app.main import app  # p.ej. si está en app/main.py
 
-from database import SessionLocal
-from models import Video, VideoStatus, User
-from security import get_current_user
+from database import SessionLocal # noqa: E402
+from models import Video, VideoStatus # noqa: E402
+from security import get_current_user # noqa: E402
 
 class _DummyUser:
     id = 1
@@ -223,98 +222,6 @@ def _seed_data():
     db.refresh(v3)
     db.close()
     return v1.id, v2.id, v3.id
-
-
-def _votes_count(video) -> int:
-    try:
-        val = getattr(video, "votes", None)
-        if isinstance(val, int):
-            return val
-        if val is None:
-            return 0
-        return len(val)
-    except Exception:
-        return 0
-
-    db = SessionLocal()
-
-    # Crear usuario 1 (autenticado)
-    u1 = db.query(User).filter(User.id == 1).first()
-    if not u1:
-        u1 = User(
-            id=1,
-            first_name="Demo",
-            last_name="User",
-            email="demo@acme.com",
-            user_name="demo",
-            hashed_password="x",
-            is_active=True,
-        )
-        db.add(u1)
-
-    # Crear usuario 2 (otro propietario, para pruebas de 403)
-    u2 = db.query(User).filter(User.id == 2).first()
-    if not u2:
-        u2 = User(
-            id=2,
-            first_name="Other",
-            last_name="User",
-            email="other@acme.com",
-            user_name="other",
-            hashed_password="x",
-            is_active=True,
-        )
-        db.add(u2)
-
-    db.commit()
-
-    # Limpiar videos y crear 3 de prueba
-    db.query(Video).delete()
-    from datetime import datetime, timedelta, timezone
-    now = datetime.now(timezone.utc)
-
-    v1 = Video(
-        user_id=1,
-        title="Video subido",
-        status=VideoStatus.UPLOADED,
-        uploaded_at=now - timedelta(days=1),
-        processed_at=None,
-        original_url="http://localhost/media/originals/v1.mp4",
-        processed_url=None,
-        votes=5,
-        task_id="task-1",
-    )
-    v2 = Video(
-        user_id=1,
-        title="Video procesado",
-        status=VideoStatus.PROCESSED,
-        uploaded_at=now - timedelta(days=2),
-        processed_at=now - timedelta(days=2, hours=-1),
-        original_url="http://localhost/media/originals/v2.mp4",
-        processed_url="http://localhost/media/processed/v2.mp4",
-        votes=15,
-        task_id="task-2",
-    )
-    v3 = Video(
-        user_id=2,  # otro usuario
-        title="De otro usuario",
-        status=VideoStatus.PROCESSED,
-        uploaded_at=now - timedelta(days=3),
-        processed_at=now - timedelta(days=3, hours=-1),
-        original_url="http://localhost/media/originals/v3.mp4",
-        processed_url="http://localhost/media/processed/v3.mp4",
-        votes=9,
-        task_id="task-3",
-    )
-
-    db.add_all([v1, v2, v3])
-    db.commit()
-    db.refresh(v1)
-    db.refresh(v2)
-    db.refresh(v3)
-    db.close()
-    return v1.id, v2.id, v3.id
-
 
 def _is_iso_z(s):
     if s is None:
@@ -403,3 +310,91 @@ def test_get_video_detail_401_sin_autenticacion():
 
     r = client.get("/api/videos/1")  # sin Authorization
     assert r.status_code == 401
+    
+@pytest.fixture()
+def mock_storage_delete(monkeypatch):
+    def _fake_delete(path):
+        print(f"Faking delete for {path}")
+        return ""
+
+    monkeypatch.setattr(video.storage, "delete", _fake_delete)
+    return _fake_delete
+
+@pytest.fixture()
+def test_video(db_session, test_user):
+    from models import Video, VideoStatus
+    v = Video(
+        user_id=test_user.id,
+        title="video de prueba",
+        original_url="/fake/storage/video.mp4",
+        status=VideoStatus.PROCESSED,
+        task_id="fake_task_id"
+    )
+    db_session.add(v)
+    db_session.commit()
+    db_session.refresh(v)
+    return v
+
+def test_delete_video_ok(client, auth_user_override, test_video, mock_storage_delete, db_session):
+    video_id = test_video.id
+    resp = client.delete(f"/api/videos/{video_id}")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "message" in body
+    assert "eliminado exitosamente" in body["message"]
+    assert body["video_id"] == str(video_id)
+
+    from models import Video
+    deleted_video = db_session.query(Video).filter(Video.id == video_id).first()
+    assert deleted_video is None
+
+def test_delete_video_not_found(client, auth_user_override, mock_storage_delete):
+    video_id = 999999  # Use a non-existent integer ID
+    resp = client.delete(f"/api/videos/{video_id}")
+    assert resp.status_code == 404
+
+def test_delete_video_unauthorized(client, test_video):
+    video_id = test_video.id
+    resp = client.delete(f"/api/videos/{video_id}")
+    assert resp.status_code == 401
+
+@pytest.fixture()
+def other_user(db_session):
+    first = fake.first_name()
+    last = fake.last_name()
+    username = f"{first.lower()}.{last.lower()}"
+    email = fake.unique.email()
+    password = fake.password(length=12)
+    hashed_pwd = hash_password(password)
+    u = User(
+        first_name=first,
+        last_name=last,
+        email=email,
+        user_name=username,
+        hashed_password=hashed_pwd,
+    )
+    db_session.add(u)
+    db_session.commit()
+    db_session.refresh(u)
+    return u
+
+@pytest.fixture()
+def other_video(db_session, other_user):
+    from models import Video, VideoStatus
+    v = Video(
+        user_id=other_user.id,
+        title="video ajeno",
+        original_url="/fake/storage/video_ajeno.mp4",
+        status=VideoStatus.PROCESSED,
+        task_id="fake_task_id_other"
+    )
+    db_session.add(v)
+    db_session.commit()
+    db_session.refresh(v)
+    return v
+
+def test_delete_video_not_owned(client, auth_user_override, other_video, mock_storage_delete):
+    video_id = other_video.id
+    resp = client.delete(f"/api/videos/{video_id}")
+    assert resp.status_code == 404 # The service returns 404 in this case

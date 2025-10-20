@@ -20,6 +20,7 @@ _setup_path()
 from database import Base, get_db # noqa: E402
 from services.auth import router as auth_router # noqa: E402
 from services.video import router as video_router # noqa: E402
+from services.public import router as public_router # noqa: E402
 from services.public_video import router as public_video_router # noqa: E402
 from services.public_ranking import router as public_ranking_router # noqa: E402
 
@@ -52,28 +53,33 @@ def create_schema():
 @pytest.fixture()
 def db_session():
     connection = engine.connect()
-    transaction = connection.begin()
+    trans = connection.begin()
     session = TestingSessionLocal(bind=connection)
     session.begin_nested()
 
     @event.listens_for(session, "after_transaction_end")
-    def restart_savepoint(sess, trans):
-        if trans.nested and not trans._parent.nested:
+    def restart_savepoint(sess, t):
+        if t.nested and t._parent is not None and not t._parent.nested:
             sess.begin_nested()
 
     try:
         yield session
     finally:
+        if session.is_active:
+            session.rollback()
         session.close()
-        transaction.rollback()
-        connection.close()
+        
+        if trans.is_active:
+            trans.rollback()
 
+        connection.close()
 
 @pytest.fixture()
 def app(db_session):
     app = FastAPI()
     app.include_router(auth_router)
     app.include_router(video_router)
+    app.include_router(public_router)
     app.include_router(public_video_router)
     app.include_router(public_ranking_router)
 
