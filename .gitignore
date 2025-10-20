@@ -6,7 +6,6 @@ env/
 venv/
 *.db
 .vscode/
-*.png
 storage/
 .pgdata/
 ANB.log

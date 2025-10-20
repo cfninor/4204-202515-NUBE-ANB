@@ -19,6 +19,20 @@ jobs:
     name: Unit tests + coverage
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: anbdb_test
+          POSTGRES_USER: anbuser
+          POSTGRES_PASSWORD: anbpass
+        ports: [ "5434:5432" ]
+        options: >-
+          --health-cmd="pg_isready -U anbuser -d anbdb_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,6 +57,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r anbapi/requirements.txt
           if [ -f anbapi/requirements-dev.txt ]; then pip install -r anbapi/requirements-dev.txt; fi
+
+      - name: Create .env file for CI
+        run: |
+          cp .env.example.local .env
+
 
       - name: Run tests (pytest)
         run: |

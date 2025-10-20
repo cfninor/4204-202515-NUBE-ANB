@@ -15,6 +15,13 @@ class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
     RABBIT_URL: Optional[str] = None
+    ACCESS_TOKEN_EXPIRE_MINUTES: Optional[int] = None
+    SECRET_KEY: Optional[str] = None
+    UPLOAD_DIR: Optional[str] = "/data/uploads"
+    PROCESSED_DIR: Optional[str] = "/data/processed"
+    INTRO_SECONDS: Optional[float] = 2.5
+    OUTRO_SECONDS: Optional[float] = 2.5
+    ASSETS_DIR: Optional[str] = "/assets"
 
 
 class DevConfig(GlobalConfig):

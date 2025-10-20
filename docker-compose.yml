@@ -1,3 +1,5 @@
+volumes:
+  media: {}
 services:
   postgres:
     image: postgres:16-alpine
@@ -24,6 +26,18 @@ services:
     depends_on: [ postgres ]
     ports: [ "6432:5432" ] 
 
+  db-init:
+    image: postgres:16-alpine
+    depends_on: [ postgres ]
+    environment:
+      PGPASSWORD: anbpass
+    entrypoint: [ "sh", "-c" ]
+    command: >
+      "until pg_isready -h postgres -U anbuser -d anbdb; do sleep 1; done;
+       psql -h postgres -U anbuser -d anbdb -tc \"SELECT 1 FROM pg_database WHERE datname='anbdb_test'\" | grep -q 1 ||
+       psql -h postgres -U anbuser -d anbdb -c 'CREATE DATABASE anbdb_test;'"
+
+
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: rabbitmq-anb
@@ -42,7 +56,34 @@ services:
     depends_on: [ pgbouncer, rabbitmq, redis ]
     working_dir: /app/app
     volumes:
-      - ./anbapi/app/storage:/app/app/storage
+      - media:/data
+      - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --max-requests 2000 --max-requests-jitter 200"
+      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --timeout 60 --graceful-timeout 30 --max-requests 2000 --max-requests-jitter 200"
+
+  worker:
+    build:
+      context: .
+      dockerfile: anbapi/Dockerfile
+    env_file: .env
+    depends_on: [ pgbouncer, rabbitmq, redis ]
+    working_dir: /app/app                 
+    environment:
+      PYTHONPATH: /app                    
+    volumes:
+      - media:/data
+      - ./anbapi/app/assets:/assets
+    command: python -m celery -A celery_app:celery worker -l info --concurrency=2
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx-anb
+    depends_on: [ api ]
+    ports:
+      - "80:80"
+    volumes:
+      - ./anbapi/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./anbapi/nginx/conf.d:/etc/nginx/conf.d:ro         
+    restart: unless-stopped
+

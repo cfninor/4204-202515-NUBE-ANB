@@ -1,9 +1,11 @@
 # Despliegue y Documentación
 
-Este documento describe el procedimiento de instalación y ejecución de la aplicación **ANB Rising Stars Showcase**, se separa en:
+Este documento describe el procedimiento de instalación y ejecución de la aplicación **ANB Rising Stars Showcase**.
 
-* Ejecución con Docker.
-* Instalación local. 
+Se divide en dos modos:
+
+* Ejecución completa con Docker (recomendada).
+* Instalación local (solo para pruebas de la API, sin procesamiento de videos ni worker de RabbitMQ). 
 
 ###  📌 Requisitos previos
 
@@ -25,7 +27,7 @@ cp .env.example .env
 ```
 
 3. Verificar el archivo `docker-compose.yml`
-    * Se pueden ajustar los nombres de los servicios, los puertos y las credenciales si se requiere.
+    (Opcional: ajustar los nombres de los servicios, puertos o credenciales según la necesidad)
 
 ### 🐳 Ejecución con Docker
 
@@ -48,16 +50,13 @@ docker compose down
 
 1. Levantar servicios en Docker
 ```bash
-docker compose up -d postgres pgbouncer redis rabbitmq
+docker compose up -d postgres pgbouncer redis rabbitmq db-init
 ```
 
 2. Configurar el archivo .env para apuntar a los puertos expuestos en localhost
 ```bash
-# Ejemplo .env para API local usando infra en Docker
-# DATABASE_URL=postgresql+psycopg2://anbuser:anbpass@localhost:6432/anbdb
-# RABBIT_URL=amqp://guest:guest@localhost:5672//
-# REDIS_URL=redis://localhost:6379/0
-cp .env.example .\anbapi\app\.env
+cp .env.example.local .\anbapi\app\.env
+cp .env.example.local .env
 ```
 
 2. Crear un ambiente virtual 
@@ -65,7 +64,7 @@ cp .env.example .\anbapi\app\.env
 python -m venv venv              # Instalar venv
 # ACTIVAR AMBIENTE
 source venv/bin/activate         # Linux/macOS
-venv\Scripts\activate            # Windows
+.\venv\Scripts\activate            # Windows
 ```
 
 3. Instalar dependencias

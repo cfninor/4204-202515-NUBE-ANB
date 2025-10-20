@@ -8,7 +8,10 @@ engine = create_engine(
     config.DATABASE_URL,
     future=True,
     poolclass=NullPool,
-    connect_args={"connect_timeout": 5, "application_name": "api-anb"},
+    connect_args={
+        "connect_timeout": 5,
+        "application_name": "api-anb",
+    },
 )
 
 SessionLocal = scoped_session(
