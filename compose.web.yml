@@ -1,0 +1,14 @@
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: anbapi/Dockerfile
+    env_file: .env
+    working_dir: /app/app
+    volumes:
+      - /home/ubuntu/remote_folder
+      - ./anbapi/app/assets:/assets
+    ports: [ "8000:8000" ]
+    command: >
+      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --timeout 60 --graceful-timeout 30 --max-requests 2000 --max-requests-jitter 200"
+    restart: unless-stopped
