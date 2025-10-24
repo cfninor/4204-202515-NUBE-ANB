@@ -6,7 +6,7 @@ services:
     env_file: .env
     working_dir: /app/app
     volumes:
-      - /home/ubuntu/remote_folder
+      - /home/ubuntu/remote_folder:/data
       - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
