@@ -1,0 +1,31 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq-anb
+    ports:
+      - "5672:5672"
+      - "15672:15672"  
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-anb
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: anbapi/Dockerfile
+    container_name: anb-worker
+    env_file: .env
+    depends_on: [ rabbitmq, redis ]
+    working_dir: /app/app
+    environment:
+      PYTHONPATH: /app
+    volumes:
+      - /home/ubuntu/remote_folder:/data        
+      - ./anbapi/app/assets:/assets
+    command: python -m celery -A celery_app:celery worker -l info --concurrency=2
+    restart: unless-stopped
