@@ -16,11 +16,11 @@ from fastapi import (
 from models import User, Video, VideoStatus
 from security import get_current_user
 from sqlalchemy.orm import Session
-from storage_a.local import LocalStorage
+from storage_a.s3 import S3Storage
 from workers.tasks import process_video
 
 router = APIRouter(prefix="/api/videos", tags=["videos"])
-storage = LocalStorage()
+storage = S3Storage()
 
 MAX_FILE_SIZE_MB = 100
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024

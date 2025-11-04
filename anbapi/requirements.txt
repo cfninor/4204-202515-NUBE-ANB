@@ -20,3 +20,4 @@ prometheus-fastapi-instrumentator
 faker
 psycopg[binary]
 python-multipart
+boto3
