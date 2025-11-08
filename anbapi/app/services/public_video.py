@@ -6,12 +6,9 @@ from models import User, Video, VideoVote
 from security import get_current_user
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from storage_a.local import LocalStorage
-from workers.tasks import process_video
 
 router = APIRouter(prefix="/api/public/videos", tags=["public_videos"])
 bearer = HTTPBearer()
-storage = LocalStorage()
 
 
 @router.post("/{video_id}/vote", status_code=status.HTTP_201_CREATED)

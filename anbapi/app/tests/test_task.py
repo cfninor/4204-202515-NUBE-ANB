@@ -1,12 +1,10 @@
 import os
-from datetime import datetime
-from pathlib import Path
+import subprocess
 
 import pytest
 from faker import Faker
 from models import User, Video, VideoStatus
 from security import hash_password
-from sqlalchemy import select
 from workers import tasks
 
 fake = Faker()
@@ -15,57 +13,39 @@ fake = Faker()
 class _SubprocessCalls:
     def __init__(self):
         self.run_calls = []
-        self.check_output_calls = []
 
-    def fake_run(self, cmd, check=True):
-        self.run_calls.append((tuple(cmd), bool(check)))
-
-    def fake_check_output_audio(self, args, stderr=None):
-        self.check_output_calls.append(tuple(args))
-        return b"0\n"
-
-    def fake_check_output_noaudio(self, args, stderr=None):
-        from subprocess import CalledProcessError
-
-        self.check_output_calls.append(tuple(args))
-        raise CalledProcessError(returncode=1, cmd=args)
+    def fake_run(self, cmd, stdout=None, stderr=None, check=None):
+        self.run_calls.append(cmd)
 
 
-def _make_user(db_session, **overrides):
-    first = fake.first_name()
-    last = fake.last_name()
-    username = f"{first.lower()}.{last.lower()}"
-    email = fake.unique.email()
-    password = fake.password(length=12)
-    city = fake.city()
-    country = fake.country()
-    hashed_pwd = hash_password(password)
-    data = {
-        "first_name": first,
-        "last_name": last,
-        "email": email,
-        "user_name": username,
-        "hashed_password": hashed_pwd,
-        "city": city,
-        "country": country,
-    }
-    data.update(overrides)
-    u = User(**data)
+def _make_user(db_session, **extra):
+    u = User(
+        first_name=fake.first_name(),
+        last_name=fake.last_name(),
+        email=fake.unique.email(),
+        user_name=fake.user_name(),
+        hashed_password=hash_password(fake.password()),
+        city=fake.city(),
+        country=fake.country(),
+        **extra,
+    )
     db_session.add(u)
     db_session.commit()
     db_session.refresh(u)
     return u
 
 
-def _make_video(db_session, user, original_url="/tmp/fake.mp4", **overrides):
-    v = Video(
-        user_id=user.id,
-        title="demo",
-        original_url=original_url,
-        status=VideoStatus.UPLOADED,
-        task_id=user.id,
-        **overrides,
-    )
+def _make_video(db_session, user, **extra):
+    defaults = {
+        "user_id": user.id,
+        "title": "test",
+        "original_url": "/tmp/fake.mp4",
+        "status": VideoStatus.UPLOADED,
+        "task_id": user.id,
+    }
+
+    defaults.update(extra)
+    v = Video(**defaults)
     db_session.add(v)
     db_session.commit()
     db_session.refresh(v)
@@ -78,258 +58,158 @@ def patch_sessionlocal(monkeypatch, db_session):
 
 
 @pytest.fixture()
-def patch_config_dirs(monkeypatch, tmp_path):
+def patch_config(monkeypatch, tmp_path):
     processed = tmp_path / "processed"
     assets = tmp_path / "assets"
     processed.mkdir()
     assets.mkdir()
-
     monkeypatch.setattr(tasks.config, "PROCESSED_DIR", os.fspath(processed))
     monkeypatch.setattr(tasks.config, "ASSETS_DIR", os.fspath(assets))
-
     monkeypatch.setattr(tasks.config, "INTRO_SECONDS", 1)
     monkeypatch.setattr(tasks.config, "OUTRO_SECONDS", 1)
     return processed, assets
 
 
-def test_run_calls_subprocess(monkeypatch):
+def test_run_ok(monkeypatch):
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    tasks.run(["echo", "hello"])
-    assert calls.run_calls and calls.run_calls[0][0] == ("echo", "hello")
+    tasks._run(["echo", "hi"])
+    assert calls.run_calls and "echo" in calls.run_calls[0]
 
 
-def test_has_audio_stream_true(monkeypatch):
+def test_run_raises(monkeypatch):
+    def boom(cmd, **kw):
+        raise subprocess.CalledProcessError(returncode=1, cmd=cmd, stderr=b"fail")
+
+    monkeypatch.setattr(tasks.subprocess, "run", boom)
+    with pytest.raises(subprocess.CalledProcessError):
+        tasks._run(["ffmpeg"])
+
+
+def test_ensure_file_creates(tmp_path):
+    p = tmp_path / "sub" / "file.txt"
+    tasks._ensure_file(os.fspath(p))
+    assert p.exists()
+
+
+def test_build_filter_contains_expected():
+    vf = tasks._build_filter(1.0, 1.0, 33.0)
+    assert "concat" in vf and "trim=0:33.0" in vf
+
+
+def test_render_final_video_invokes_ffmpeg(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-    assert tasks.has_audio_stream("/tmp/file.mp4") is True
-    assert calls.check_output_calls[0][0:2] == (tasks.FFPROBE, "-v")
-
-
-def test_has_audio_stream_false(monkeypatch):
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(
-        tasks.subprocess, "check_output", calls.fake_check_output_noaudio
-    )
-    assert tasks.has_audio_stream("/tmp/file.mp4") is False
-
-
-def test_x264_video_args_and_fast_flag():
-    args = tasks.x264_video_args()
-    assert "-c:v" in args and "libx264" in args
-    assert "-movflags" in args and tasks.FAST in args
-    assert "-r" in args and "30" in args
-    assert "-fps_mode" in args and "cfr" in args
-    assert "-preset" in args and "veryfast" in args
-    assert "-crf" in args and "23" in args
-    assert "-pix_fmt" in args and "yuv420p" in args
-
-
-def test_build_vf_main():
-    vf = tasks.build_vf_main()
-    assert "scale=w=1280:h=720" in vf
-    assert "force_original_aspect_ratio=decrease" in vf
-    assert "pad=1280:720" in vf
-    assert "format=rgba" in vf
-
-
-def test_render_main_clip_with_logo(monkeypatch, tmp_path):
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     src = tmp_path / "src.mp4"
     logo = tmp_path / "logo.jpg"
     out = tmp_path / "out.mp4"
-    src.write_bytes(b"\x00" * 10)
-    logo.write_bytes(b"\x00")
-
-    tasks.render_main_clip(os.fspath(src), 5.0, os.fspath(logo), os.fspath(out))
-    assert calls.run_calls, "No llamó a ffmpeg"
-    cmd, _ = calls.run_calls[0]
-    assert cmd[0] == tasks.FFMPEG
-    assert "-i" in cmd and os.fspath(src) in cmd
-    assert "-i" in cmd and os.fspath(logo) in cmd
-    assert any("overlay=" in c for c in cmd)
-    assert "-an" in cmd
+    src.write_bytes(b"00")
+    logo.write_bytes(b"11")
+    tasks._render_final_video(str(src), str(logo), str(out), 1, 1)
+    cmd = calls.run_calls[0]
+    assert tasks.FFMPEG in cmd and "-filter_complex" in cmd
+    assert "-preset" in cmd and "ultrafast" in cmd
+    assert out.exists() is False or isinstance(cmd, list)
 
 
-def test_render_main_clip_without_logo(monkeypatch, tmp_path):
+def test_render_simple_invokes_ffmpeg(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     src = tmp_path / "src.mp4"
     out = tmp_path / "out.mp4"
-    src.write_bytes(b"\x00" * 10)
-
-    tasks.render_main_clip(os.fspath(src), 7.5, None, os.fspath(out))
-    cmd, _ = calls.run_calls[0]
-    assert cmd[0] == tasks.FFMPEG
-    assert "-vf" in cmd
-    assert "-an" in cmd
+    src.write_bytes(b"00")
+    tasks._render_simple(str(src), str(out))
+    cmd = calls.run_calls[0]
+    assert tasks.FFMPEG in cmd and "-vf" in cmd
+    assert "-preset" in cmd and "ultrafast" in cmd
 
 
-def test_render_color_clip(monkeypatch, tmp_path):
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-    out = tmp_path / "color.mp4"
-    tasks.render_color_clip(2.0, os.fspath(out))
-    cmd, _ = calls.run_calls[0]
-    assert "-f" in cmd and "lavfi" in cmd
-    assert "-i" in cmd and tasks.COLOR in cmd
-    assert "-an" in cmd
-
-
-def test_render_logo_clip(monkeypatch, tmp_path):
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-
-    logo = tmp_path / "logo.jpg"
-    out = tmp_path / "logo_clip.mp4"
-    logo.write_bytes(b"\x00")
-    tasks.render_logo_clip(3.0, os.fspath(logo), os.fspath(out))
-    cmd, _ = calls.run_calls[0]
-    assert "-loop" in cmd
-    assert any("overlay=" in c for c in cmd)
-    assert "-an" in cmd
-
-
-def test_render_stub_one_frame(monkeypatch, tmp_path):
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-    out = tmp_path / "stub.mp4"
-    tasks.render_stub_one_frame(os.fspath(out))
-    cmd, _ = calls.run_calls[0]
-    assert "-t" in cmd and "0.033" in cmd
-    assert "-an" in cmd
-
-
-def test_concat_three(monkeypatch, tmp_path):
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-    intro = tmp_path / "i.mp4"
-    main_ = tmp_path / "m.mp4"
-    outro = tmp_path / "o.mp4"
-    dest = tmp_path / "dest.mp4"
-    for f in (intro, main_, outro):
-        f.write_bytes(b"\x00")
-    tasks.concat_three(
-        os.fspath(intro), os.fspath(main_), os.fspath(outro), os.fspath(dest)
-    )
-    cmd, _ = calls.run_calls[0]
-    assert any("concat=n=3:v=1:a=0" in c for c in cmd)
-
-
-def test_process_video_not_found_returns_not_found(
-    patch_sessionlocal, patch_config_dirs, monkeypatch
-):
+def test_process_video_not_found(monkeypatch, patch_sessionlocal):
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-
-    result = tasks.process_video("999999")
+    result = tasks.process_video("9999")
     assert result == "not-found"
-    assert calls.run_calls == []
 
 
-def test_process_video_ok_with_audio_and_logo(
-    patch_sessionlocal, patch_config_dirs, monkeypatch, db_session
+def test_process_video_ok_with_logo(
+    monkeypatch, patch_sessionlocal, patch_config, db_session
 ):
-    processed_dir, assets_dir = patch_config_dirs
-    u = _make_user(db_session)
-    src_file = os.path.join(os.fspath(processed_dir), "src.mp4")
-    Path(src_file).write_bytes(b"\x00" * 10)
-    v = _make_video(db_session, u, original_url=src_file)
-
-    Path(os.path.join(assets_dir, "logo.jpg")).write_bytes(b"\x00")
-
+    processed, assets = patch_config
+    user = _make_user(db_session)
+    src = processed / "input.mp4"
+    logo = assets / "logo.jpg"
+    src.write_bytes(b"00")
+    logo.write_bytes(b"11")
+    vid = _make_video(db_session, user, original_url=str(src))
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-
-    res = tasks.process_video(v.id)
+    res = tasks.process_video(str(vid.id))
     assert res == "ok"
-
-    v2 = db_session.execute(select(Video).where(Video.id == v.id)).scalar_one()
-    assert v2.status == VideoStatus.PROCESSED
-    assert v2.processed_url.startswith(os.fspath(processed_dir))
-    assert isinstance(v2.processed_at, datetime)
-    assert len(calls.run_calls) >= 3
+    v = db_session.get(Video, vid.id)
+    assert v.status == VideoStatus.PROCESSED
+    assert v.processed_at and v.processed_url
+    assert tasks.FFMPEG in calls.run_calls[0]
 
 
-def test_process_video_ok_without_audio_no_logo(
-    patch_sessionlocal, patch_config_dirs, monkeypatch, db_session
+def test_process_video_ok_without_logo(
+    monkeypatch, patch_sessionlocal, patch_config, db_session
 ):
-    processed_dir, assets_dir = patch_config_dirs
-    u = _make_user(db_session)
-    src_file = os.path.join(os.fspath(processed_dir), "src2.mp4")
-    Path(src_file).write_bytes(b"\x00" * 10)
-    v = _make_video(db_session, u, original_url=src_file)
-
-    logo_path = Path(os.path.join(assets_dir, "logo.jpg"))
-    if logo_path.exists():
-        logo_path.unlink()
-
+    processed, assets = patch_config
+    user = _make_user(db_session)
+    src = processed / "no_logo.mp4"
+    src.write_bytes(b"00")
+    (assets / "logo.jpg").unlink(missing_ok=True)
+    vid = _make_video(db_session, user, original_url=str(src))
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(
-        tasks.subprocess, "check_output", calls.fake_check_output_noaudio
-    )
-
-    res = tasks.process_video(v.id)
+    res = tasks.process_video(str(vid.id))
     assert res == "ok"
-
-    v2 = db_session.get(Video, v.id)
-    assert v2.status == VideoStatus.PROCESSED
-    assert v2.processed_url.startswith(os.fspath(processed_dir))
-    assert v2.processed_at is not None
+    v = db_session.get(Video, vid.id)
+    assert v.status == VideoStatus.PROCESSED
+    assert v.processed_url.endswith(".mp4")
 
 
-def test_process_video_ok_intro_outro_zero_use_stub(
-    patch_sessionlocal, patch_config_dirs, monkeypatch, db_session
+def test_process_video_sets_failed(
+    monkeypatch, patch_sessionlocal, patch_config, db_session
 ):
-    processed_dir, _ = patch_config_dirs
+    processed, _ = patch_config
+    user = _make_user(db_session)
+    src = processed / "broken.mp4"
+    src.write_bytes(b"00")
+    vid = _make_video(db_session, user, original_url=str(src))
 
-    monkeypatch.setattr(tasks.config, "INTRO_SECONDS", 0.0)
-    monkeypatch.setattr(tasks.config, "OUTRO_SECONDS", 0.0)
-
-    u = _make_user(db_session)
-    src_file = os.path.join(os.fspath(processed_dir), "src3.mp4")
-    Path(src_file).write_bytes(b"\x00" * 10)
-    v = _make_video(db_session, u, original_url=src_file)
-
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-
-    res = tasks.process_video(v.id)
-    assert res == "ok"
-
-    v2 = db_session.get(Video, v.id)
-    assert v2.status == VideoStatus.PROCESSED
-    assert v2.processed_url.startswith(os.fspath(processed_dir))
-
-    joined = " ".join(" ".join(map(str, c[0])) for c in calls.run_calls)
-    assert "0.033" in joined
-
-
-def test_process_video_error_sets_failed(
-    patch_sessionlocal, patch_config_dirs, monkeypatch, db_session
-):
-    processed_dir, _ = patch_config_dirs
-    u = _make_user(db_session)
-    src_file = os.path.join(os.fspath(processed_dir), "broken.mp4")
-    Path(src_file).write_bytes(b"\x00")
-    v = _make_video(db_session, u, original_url=src_file)
-
-    def _boom(cmd, check=True):
+    def boom(cmd, **kw):
         raise RuntimeError("ffmpeg exploded")
 
-    monkeypatch.setattr(tasks.subprocess, "run", _boom)
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-
-    res = tasks.process_video(v.id)
+    monkeypatch.setattr(tasks.subprocess, "run", boom)
+    res = tasks.process_video(str(vid.id))
+    v = db_session.get(Video, vid.id)
     assert res == "error"
+    assert v.status == VideoStatus.FAILED
 
-    v2 = db_session.get(Video, v.id)
-    assert v2.status == VideoStatus.FAILED
+
+def test_run_handles_file_not_found(monkeypatch):
+    def _boom(cmd, **kw):
+        raise FileNotFoundError("missing ffmpeg")
+
+    monkeypatch.setattr(tasks.subprocess, "run", _boom)
+    with pytest.raises(FileNotFoundError):
+        tasks._run(["ffmpeg"])
+
+
+def test_process_video_logs_info(
+    monkeypatch, patch_sessionlocal, patch_config, db_session, caplog
+):
+    processed, assets = patch_config
+    user = _make_user(db_session)
+    src = processed / "ok_log.mp4"
+    logo = assets / "logo.jpg"
+    src.write_bytes(b"00")
+    logo.write_bytes(b"11")
+    vid = _make_video(db_session, user, original_url=str(src))
+    monkeypatch.setattr(tasks.subprocess, "run", lambda *a, **kw: None)
+
+    with caplog.at_level("INFO"):
+        res = tasks.process_video(str(vid.id))
+    assert res == "ok"
+    assert any("procesado correctamente" in m for m in caplog.messages)

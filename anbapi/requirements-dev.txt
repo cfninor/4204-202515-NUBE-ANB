@@ -5,3 +5,4 @@ pytest
 httpx
 pytest-mock
 pytest-cov
+pytest-timeout
