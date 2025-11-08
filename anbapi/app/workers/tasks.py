@@ -257,13 +257,13 @@ def process_video(video_id: str) -> Literal["not-found", "ok", "error"]:
 
             _concat_segments(intro, main_720, outro, final_local)
 
-            out_key = f"{str(config.PROCESSED_DIR).strip('/')}/{vid}.mp4"
+            out_key = os.path.join(os.fspath(config.PROCESSED_DIR), f"{vid}.mp4")
             with open(final_local, "rb") as f:
                 storage.save(out_key, f)
         video.status = VideoStatus.PROCESSED
-        processed_url = getattr(storage, "url", None)
+        processed_url_fn = getattr(storage, "url", None)
         video.processed_url = (
-            processed_url(out_key) if callable(processed_url) else out_key
+            processed_url_fn(out_key) if callable(processed_url_fn) else out_key
         )
         video.processed_at = datetime.now(timezone.utc)
         db.commit()
