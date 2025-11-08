@@ -70,7 +70,6 @@ def patch_config(monkeypatch, tmp_path):
     return processed, assets
 
 
-# --- unit tests for helpers ---
 def test_run_ok(monkeypatch):
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)

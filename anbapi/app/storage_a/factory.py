@@ -8,4 +8,4 @@ def get_storage():
     backend = os.getenv("STORAGE_BACKEND", "local").lower()
     if backend == "s3":
         return S3Storage()
-    return LocalStorage(base_dir="/data")
+    return LocalStorage(base_dir="/")
