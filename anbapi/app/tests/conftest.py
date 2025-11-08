@@ -16,6 +16,7 @@ def _setup_path() -> None:
         sys.path.insert(0, p)
 
 _setup_path()
+load_dotenv()
 
 from database import Base, get_db # noqa: E402
 from services.auth import router as auth_router # noqa: E402
@@ -23,8 +24,6 @@ from services.video import router as video_router # noqa: E402
 from services.public import router as public_router # noqa: E402
 from services.public_video import router as public_video_router # noqa: E402
 from services.public_ranking import router as public_ranking_router # noqa: E402
-
-load_dotenv()
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
