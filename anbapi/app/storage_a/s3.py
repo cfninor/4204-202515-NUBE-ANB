@@ -56,3 +56,7 @@ class S3Storage(Storage):
     def _full_key(self, key: str) -> str:
         key = key.lstrip("/")
         return f"{self.base_prefix}/{key}" if self.base_prefix else key
+    
+    def download_to_path(self, key: str, dest_path: str) -> None:
+        full_key = self._full_key(key)
+        self._s3.download_file(self.bucket, full_key, dest_path)

@@ -9,23 +9,20 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
+
 def _setup_path() -> None:
-    app_dir = Path(__file__).resolve().parents[1]  
+    app_dir = Path(__file__).resolve().parents[1]
     p = str(app_dir)
     if p not in sys.path:
         sys.path.insert(0, p)
 
+
 _setup_path()
 load_dotenv()
 
-from database import Base, get_db # noqa: E402
-from services.auth import router as auth_router # noqa: E402
-from services.video import router as video_router # noqa: E402
-from services.public import router as public_router # noqa: E402
-from services.public_video import router as public_video_router # noqa: E402
-from services.public_ranking import router as public_ranking_router # noqa: E402
-
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+
+from database import Base, get_db  # noqa: E402
 
 engine = create_engine(
     TEST_DATABASE_URL,
@@ -67,14 +64,19 @@ def db_session():
         if session.is_active:
             session.rollback()
         session.close()
-        
         if trans.is_active:
             trans.rollback()
-
         connection.close()
+
 
 @pytest.fixture()
 def app(db_session):
+    from services.auth import router as auth_router
+    from services.public import router as public_router
+    from services.public_ranking import router as public_ranking_router
+    from services.public_video import router as public_video_router
+    from services.video import router as video_router
+
     app = FastAPI()
     app.include_router(auth_router)
     app.include_router(video_router)
@@ -91,8 +93,5 @@ def app(db_session):
 
 @pytest.fixture()
 def client(app):
-    c = TestClient(app)
-    try:
+    with TestClient(app) as c:
         yield c
-    finally:
-        c.close()

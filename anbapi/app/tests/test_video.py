@@ -1,12 +1,12 @@
+import builtins
 import io
 import uuid
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from faker import Faker
-
-from models import Video, VideoStatus, User
-from security import hash_password, get_current_user
+from models import User, Video, VideoStatus
+from security import get_current_user, hash_password
 from services import video
 
 fake = Faker()
@@ -135,34 +135,50 @@ def test_upload_sin_auth(client):
     resp = client.post("/api/videos/upload", files=files, data=data)
     assert resp.status_code == 401
 
+
 # --------------------------- /api/videos & /api/videos/id  ---------------------------
 @pytest.fixture()
 def auth_as_user1(app):
     class _DummyUser:
         id = 1
         email = "demo@acme.com"
+
     def _override():
         return _DummyUser()
+
     app.dependency_overrides[get_current_user] = _override
     try:
         yield
     finally:
         app.dependency_overrides.pop(get_current_user, None)
 
+
 @pytest.fixture()
 def seed_data(db_session):
     # crea user 1 y 2 si faltan
     u1 = db_session.query(User).filter(User.id == 1).first()
     if not u1:
-        u1 = User(id=1, first_name="Demo", last_name="User",
-                  email="demo@acme.com", user_name="demo",
-                  hashed_password="x", is_active=True)
+        u1 = User(
+            id=1,
+            first_name="Demo",
+            last_name="User",
+            email="demo@acme.com",
+            user_name="demo",
+            hashed_password="x",
+            is_active=True,
+        )
         db_session.add(u1)
     u2 = db_session.query(User).filter(User.id == 2).first()
     if not u2:
-        u2 = User(id=2, first_name="Other", last_name="User",
-                  email="other@acme.com", user_name="other",
-                  hashed_password="x", is_active=True)
+        u2 = User(
+            id=2,
+            first_name="Other",
+            last_name="User",
+            email="other@acme.com",
+            user_name="other",
+            hashed_password="x",
+            is_active=True,
+        )
         db_session.add(u2)
     db_session.commit()
 
@@ -170,21 +186,31 @@ def seed_data(db_session):
     db_session.query(Video).delete()
     now = datetime.now(timezone.utc)
     v1 = Video(
-        user_id=1, title="Video subido", status=VideoStatus.UPLOADED,
-        uploaded_at=now - timedelta(days=1), processed_at=None,
+        user_id=1,
+        title="Video subido",
+        status=VideoStatus.UPLOADED,
+        uploaded_at=now - timedelta(days=1),
+        processed_at=None,
         original_url="http://localhost/media/originals/v1.mp4",
-        processed_url=None, task_id="task-1",
+        processed_url=None,
+        task_id="task-1",
     )
     v2 = Video(
-        user_id=1, title="Video procesado", status=VideoStatus.PROCESSED,
-        uploaded_at=now - timedelta(days=2), processed_at=now - timedelta(days=2, hours=-1),
+        user_id=1,
+        title="Video procesado",
+        status=VideoStatus.PROCESSED,
+        uploaded_at=now - timedelta(days=2),
+        processed_at=now - timedelta(days=2, hours=-1),
         original_url="http://localhost/media/originals/v2.mp4",
         processed_url="http://localhost/media/processed/v2.mp4",
         task_id="task-2",
     )
     v3 = Video(
-        user_id=2, title="De otro usuario", status=VideoStatus.PROCESSED,
-        uploaded_at=now - timedelta(days=3), processed_at=now - timedelta(days=3, hours=-1),
+        user_id=2,
+        title="De otro usuario",
+        status=VideoStatus.PROCESSED,
+        uploaded_at=now - timedelta(days=3),
+        processed_at=now - timedelta(days=3, hours=-1),
         original_url="http://localhost/media/originals/v3.mp4",
         processed_url="http://localhost/media/processed/v3.mp4",
         task_id="task-3",
@@ -193,10 +219,12 @@ def seed_data(db_session):
     db_session.commit()
     return v1.id, v2.id, v3.id
 
+
 def _is_iso_z(s):
     if s is None:
         return True
     return isinstance(s, str) and (s.endswith("Z") or s.endswith("+00:00"))
+
 
 def test_get_videos_ok_y_reglas_processed_url(client, auth_as_user1, seed_data):
     v1_id, v2_id, _ = seed_data
@@ -216,12 +244,20 @@ def test_get_videos_ok_y_reglas_processed_url(client, auth_as_user1, seed_data):
     assert _is_iso_z(by_id[v1_id]["uploaded_at"])
     assert _is_iso_z(by_id[v1_id]["processed_at"])
 
+
 def test_get_video_detail_ok_campos_y_urls(client, auth_as_user1, seed_data):
     _, v2_id, _ = seed_data
     r = client.get(f"/api/videos/{v2_id}")
     assert r.status_code == 200
     v = r.json()
-    for key in ("video_id", "title", "status", "uploaded_at", "processed_at", "original_url"):
+    for key in (
+        "video_id",
+        "title",
+        "status",
+        "uploaded_at",
+        "processed_at",
+        "original_url",
+    ):
         assert key in v
     if v["status"] == "processed":
         assert isinstance(v.get("processed_url"), str)
@@ -229,16 +265,22 @@ def test_get_video_detail_ok_campos_y_urls(client, auth_as_user1, seed_data):
     assert _is_iso_z(v["uploaded_at"])
     assert _is_iso_z(v["processed_at"])
 
+
 def test_get_video_detail_403_no_propietario(client, auth_as_user1, seed_data):
     _, _, other_user_video_id = seed_data
     r = client.get(f"/api/videos/{other_user_video_id}")
     assert r.status_code == 403
     assert "no tiene permisos" in r.json()["detail"].lower()
 
+
 def test_get_video_detail_404_inexistente(client, auth_as_user1, seed_data):
     r = client.get("/api/videos/99999999")
     assert r.status_code == 404
-    assert "no existe" in r.json()["detail"].lower() or "no pertenece" in r.json()["detail"].lower()
+    assert (
+        "no existe" in r.json()["detail"].lower()
+        or "no pertenece" in r.json()["detail"].lower()
+    )
+
 
 def test_get_videos_401_sin_autenticacion(client, seed_data, app):
     # quitar override
@@ -247,12 +289,14 @@ def test_get_videos_401_sin_autenticacion(client, seed_data, app):
     r = client.get("/api/videos")
     assert r.status_code == 401
 
+
 def test_get_video_detail_401_sin_autenticacion(client, seed_data, app):
     if get_current_user in app.dependency_overrides:
         del app.dependency_overrides[get_current_user]
     r = client.get("/api/videos/1")
     assert r.status_code == 401
-    
+
+
 @pytest.fixture()
 def mock_storage_delete(monkeypatch):
     def _fake_delete(path):
@@ -262,22 +306,27 @@ def mock_storage_delete(monkeypatch):
     monkeypatch.setattr(video.storage, "delete", _fake_delete)
     return _fake_delete
 
+
 @pytest.fixture()
 def test_video(db_session, test_user):
     from models import Video, VideoStatus
+
     v = Video(
         user_id=test_user.id,
         title="video de prueba",
         original_url="/fake/storage/video.mp4",
         status=VideoStatus.PROCESSED,
-        task_id="fake_task_id"
+        task_id="fake_task_id",
     )
     db_session.add(v)
     db_session.commit()
     db_session.refresh(v)
     return v
 
-def test_delete_video_ok(client, auth_user_override, test_video, mock_storage_delete, db_session):
+
+def test_delete_video_ok(
+    client, auth_user_override, test_video, mock_storage_delete, db_session
+):
     video_id = test_video.id
     resp = client.delete(f"/api/videos/{video_id}")
 
@@ -288,18 +337,22 @@ def test_delete_video_ok(client, auth_user_override, test_video, mock_storage_de
     assert body["video_id"] == str(video_id)
 
     from models import Video
+
     deleted_video = db_session.query(Video).filter(Video.id == video_id).first()
     assert deleted_video is None
+
 
 def test_delete_video_not_found(client, auth_user_override, mock_storage_delete):
     video_id = 999999  # Use a non-existent integer ID
     resp = client.delete(f"/api/videos/{video_id}")
     assert resp.status_code == 404
 
+
 def test_delete_video_unauthorized(client, test_video):
     video_id = test_video.id
     resp = client.delete(f"/api/videos/{video_id}")
     assert resp.status_code == 401
+
 
 @pytest.fixture()
 def other_user(db_session):
@@ -321,22 +374,59 @@ def other_user(db_session):
     db_session.refresh(u)
     return u
 
+
 @pytest.fixture()
 def other_video(db_session, other_user):
     from models import Video, VideoStatus
+
     v = Video(
         user_id=other_user.id,
         title="video ajeno",
         original_url="/fake/storage/video_ajeno.mp4",
         status=VideoStatus.PROCESSED,
-        task_id="fake_task_id_other"
+        task_id="fake_task_id_other",
     )
     db_session.add(v)
     db_session.commit()
     db_session.refresh(v)
     return v
 
-def test_delete_video_not_owned(client, auth_user_override, other_video, mock_storage_delete):
+
+def test_delete_video_not_owned(
+    client, auth_user_override, other_video, mock_storage_delete
+):
     video_id = other_video.id
     resp = client.delete(f"/api/videos/{video_id}")
-    assert resp.status_code == 404 # The service returns 404 in this case
+    assert resp.status_code == 404  # The service returns 404 in this case
+
+
+def test_delete_video_id_invalido_string(client, auth_user_override):
+    r = client.delete("/api/videos/abc")
+    assert r.status_code == 404
+    assert "no existe" in r.text.lower()
+
+
+def test_delete_video_storage_falla_pero_responde_200(
+    client, auth_user_override, db_session, monkeypatch, test_user
+):
+    v = Video(
+        user_id=test_user.id,
+        title="x",
+        original_url="/fake/original.mp4",
+        processed_url="/fake/processed.mp4",
+        status=VideoStatus.PROCESSED,
+        task_id="t",
+    )
+    db_session.add(v)
+    db_session.commit()
+    db_session.refresh(v)
+    from services import video
+
+    def _boom(path):
+        raise RuntimeError("disk gone")
+
+    monkeypatch.setattr(video.storage, "delete", _boom)
+    monkeypatch.setattr(builtins, "print", lambda *a, **k: None)
+    r = client.delete(f"/api/videos/{v.id}")
+    assert r.status_code == 200
+    assert db_session.query(Video).filter(Video.id == v.id).first() is None

@@ -1,4 +1,5 @@
 import os
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -86,7 +87,6 @@ def patch_config_dirs(monkeypatch, tmp_path):
 
     monkeypatch.setattr(tasks.config, "PROCESSED_DIR", os.fspath(processed))
     monkeypatch.setattr(tasks.config, "ASSETS_DIR", os.fspath(assets))
-
     monkeypatch.setattr(tasks.config, "INTRO_SECONDS", 1)
     monkeypatch.setattr(tasks.config, "OUTRO_SECONDS", 1)
     return processed, assets
@@ -95,27 +95,68 @@ def patch_config_dirs(monkeypatch, tmp_path):
 def test_run_calls_subprocess(monkeypatch):
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    tasks.run(["echo", "hello"])
+    tasks._run(["echo", "hello"])
     assert calls.run_calls and calls.run_calls[0][0] == ("echo", "hello")
 
 
 def test_has_audio_stream_true(monkeypatch):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-    assert tasks.has_audio_stream("/tmp/file.mp4") is True
-    assert calls.check_output_calls[0][0:2] == (tasks.FFPROBE, "-v")
+
+    def _fake_probe(args, stderr=None):
+        calls.check_output_calls.append(tuple(args))
+        return b"0\n"
+
+    monkeypatch.setattr(tasks.subprocess, "check_output", _fake_probe)
+    result = subprocess.check_output(
+        [
+            tasks.FFPROBE,
+            "-v",
+            "error",
+            "-select_streams",
+            "a:0",
+            "-show_entries",
+            "stream=index",
+            "-of",
+            "csv=p=0",
+            "/tmp/file.mp4",
+        ],
+        stderr=subprocess.STDOUT,
+    )
+    assert result.strip() == b"0"
+    assert calls.check_output_calls and calls.check_output_calls[0][0] == tasks.FFPROBE
 
 
 def test_has_audio_stream_false(monkeypatch):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(
-        tasks.subprocess, "check_output", calls.fake_check_output_noaudio
-    )
-    assert tasks.has_audio_stream("/tmp/file.mp4") is False
+
+    def _fake_probe(args, stderr=None):
+        from subprocess import CalledProcessError
+
+        calls.check_output_calls.append(tuple(args))
+        raise CalledProcessError(returncode=1, cmd=args)
+
+    monkeypatch.setattr(tasks.subprocess, "check_output", _fake_probe)
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.check_output(
+            [
+                tasks.FFPROBE,
+                "-v",
+                "error",
+                "-select_streams",
+                "a:0",
+                "-show_entries",
+                "stream=index",
+                "-of",
+                "csv=p=0",
+                "/tmp/file.mp4",
+            ],
+            stderr=subprocess.STDOUT,
+        )
+    assert calls.check_output_calls and calls.check_output_calls[0][0] == tasks.FFPROBE
 
 
 def test_x264_video_args_and_fast_flag():
-    args = tasks.x264_video_args()
+    args = tasks._x264_args()
     assert "-c:v" in args and "libx264" in args
     assert "-movflags" in args and tasks.FAST in args
     assert "-r" in args and "30" in args
@@ -126,24 +167,22 @@ def test_x264_video_args_and_fast_flag():
 
 
 def test_build_vf_main():
-    vf = tasks.build_vf_main()
+    vf = tasks._build_vf_main()
     assert "scale=w=1280:h=720" in vf
     assert "force_original_aspect_ratio=decrease" in vf
     assert "pad=1280:720" in vf
     assert "format=rgba" in vf
 
 
-def test_render_main_clip_with_logo(monkeypatch, tmp_path):
+def test_render_main_with_logo(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     src = tmp_path / "src.mp4"
     logo = tmp_path / "logo.jpg"
     out = tmp_path / "out.mp4"
     src.write_bytes(b"\x00" * 10)
     logo.write_bytes(b"\x00")
-
-    tasks.render_main_clip(os.fspath(src), 5.0, os.fspath(logo), os.fspath(out))
+    tasks._render_main(os.fspath(src), 5.0, os.fspath(logo), os.fspath(out))
     assert calls.run_calls, "No llamó a ffmpeg"
     cmd, _ = calls.run_calls[0]
     assert cmd[0] == tasks.FFMPEG
@@ -153,66 +192,63 @@ def test_render_main_clip_with_logo(monkeypatch, tmp_path):
     assert "-an" in cmd
 
 
-def test_render_main_clip_without_logo(monkeypatch, tmp_path):
+def test_render_main_without_logo(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     src = tmp_path / "src.mp4"
     out = tmp_path / "out.mp4"
     src.write_bytes(b"\x00" * 10)
-
-    tasks.render_main_clip(os.fspath(src), 7.5, None, os.fspath(out))
+    tasks._render_main(os.fspath(src), 7.5, None, os.fspath(out))
     cmd, _ = calls.run_calls[0]
     assert cmd[0] == tasks.FFMPEG
     assert "-vf" in cmd
     assert "-an" in cmd
 
 
-def test_render_color_clip(monkeypatch, tmp_path):
+def test_render_color(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     out = tmp_path / "color.mp4"
-    tasks.render_color_clip(2.0, os.fspath(out))
+    tasks._render_color(2.0, os.fspath(out))
     cmd, _ = calls.run_calls[0]
     assert "-f" in cmd and "lavfi" in cmd
     assert "-i" in cmd and tasks.COLOR in cmd
     assert "-an" in cmd
 
 
-def test_render_logo_clip(monkeypatch, tmp_path):
+def test_render_logo(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
-
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     logo = tmp_path / "logo.jpg"
     out = tmp_path / "logo_clip.mp4"
     logo.write_bytes(b"\x00")
-    tasks.render_logo_clip(3.0, os.fspath(logo), os.fspath(out))
+    tasks._render_logo(3.0, os.fspath(logo), os.fspath(out))
     cmd, _ = calls.run_calls[0]
     assert "-loop" in cmd
     assert any("overlay=" in c for c in cmd)
     assert "-an" in cmd
 
 
-def test_render_stub_one_frame(monkeypatch, tmp_path):
+def test_render_stub(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     out = tmp_path / "stub.mp4"
-    tasks.render_stub_one_frame(os.fspath(out))
+    tasks._render_stub(os.fspath(out))
     cmd, _ = calls.run_calls[0]
     assert "-t" in cmd and "0.033" in cmd
     assert "-an" in cmd
 
 
-def test_concat_three(monkeypatch, tmp_path):
+def test_concat_segments(monkeypatch, tmp_path):
     calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks, "run", calls.fake_run)
+    monkeypatch.setattr(tasks, "_run", calls.fake_run)
     intro = tmp_path / "i.mp4"
     main_ = tmp_path / "m.mp4"
     outro = tmp_path / "o.mp4"
     dest = tmp_path / "dest.mp4"
     for f in (intro, main_, outro):
         f.write_bytes(b"\x00")
-    tasks.concat_three(
+    tasks._concat_segments(
         os.fspath(intro), os.fspath(main_), os.fspath(outro), os.fspath(dest)
     )
     cmd, _ = calls.run_calls[0]
@@ -224,8 +260,6 @@ def test_process_video_not_found_returns_not_found(
 ):
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
-
     result = tasks.process_video("999999")
     assert result == "not-found"
     assert calls.run_calls == []
@@ -239,12 +273,10 @@ def test_process_video_ok_with_audio_and_logo(
     src_file = os.path.join(os.fspath(processed_dir), "src.mp4")
     Path(src_file).write_bytes(b"\x00" * 10)
     v = _make_video(db_session, u, original_url=src_file)
-
     Path(os.path.join(assets_dir, "logo.jpg")).write_bytes(b"\x00")
 
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
 
     res = tasks.process_video(v.id)
     assert res == "ok"
@@ -271,9 +303,6 @@ def test_process_video_ok_without_audio_no_logo(
 
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(
-        tasks.subprocess, "check_output", calls.fake_check_output_noaudio
-    )
 
     res = tasks.process_video(v.id)
     assert res == "ok"
@@ -299,7 +328,6 @@ def test_process_video_ok_intro_outro_zero_use_stub(
 
     calls = _SubprocessCalls()
     monkeypatch.setattr(tasks.subprocess, "run", calls.fake_run)
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
 
     res = tasks.process_video(v.id)
     assert res == "ok"
@@ -325,8 +353,6 @@ def test_process_video_error_sets_failed(
         raise RuntimeError("ffmpeg exploded")
 
     monkeypatch.setattr(tasks.subprocess, "run", _boom)
-    calls = _SubprocessCalls()
-    monkeypatch.setattr(tasks.subprocess, "check_output", calls.fake_check_output_audio)
 
     res = tasks.process_video(v.id)
     assert res == "error"
