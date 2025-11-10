@@ -23,6 +23,7 @@ class Video(Base):
     status = Column(Enum(VideoStatus), default=VideoStatus.UPLOADED, nullable=False)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     processed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=True)
     original_url = Column(String, nullable=False)
     processed_url = Column(String, nullable=True)
     user_id = Column(
