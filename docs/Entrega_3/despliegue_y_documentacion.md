@@ -15,7 +15,7 @@ El nuevo modelo de despliegue está basado en una infraestructura modular dentro
 La **subred pública** aloja las instancias EC2 (API y Worker) y el **Application Load Balancer**, mientras que la **subred privada** contiene la base de datos RDS.  
 El almacenamiento de archivos se realiza en **Amazon S3**, y **CloudWatch** supervisa todos los recursos para activar alarmas y escalar instancias de manera automática.
 
-
+![Diagrama de componentes](img/DiagramaDespliegue.jpeg)
 
 ---
 
