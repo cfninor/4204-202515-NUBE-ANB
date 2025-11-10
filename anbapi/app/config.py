@@ -17,8 +17,8 @@ class GlobalConfig(BaseConfig):
     RABBIT_URL: Optional[str] = None
     ACCESS_TOKEN_EXPIRE_MINUTES: Optional[int] = None
     SECRET_KEY: Optional[str] = None
-    UPLOAD_DIR: Optional[str] = "/data/uploads"
-    PROCESSED_DIR: Optional[str] = "/data/processed"
+    UPLOAD_DIR: Optional[str] = "uploads"
+    PROCESSED_DIR: Optional[str] = "processed"
     INTRO_SECONDS: Optional[float] = 2.5
     OUTRO_SECONDS: Optional[float] = 2.5
     ASSETS_DIR: Optional[str] = "/assets"
