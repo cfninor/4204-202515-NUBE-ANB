@@ -1,3 +1,12 @@
+# API
+## RANKING
+- **Metodo:** GET
+- **Host:** labelb-2039041540.us-east-1.elb.amazonaws.com 
+- **Api:** /api/videos 
+- **URL** http://labelb-2039041540.us-east-1.elb.amazonaws.com/api/videos 
+
+---
+
 # ESCENARIO 1 (AWS,BALANCEADOR,AUTOSCALING) CAPACIDAD DE LA CAPA WEB 
 
 # 🧪 Informe de Pruebas Smoke Test
