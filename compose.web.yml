@@ -21,8 +21,7 @@ services:
       retries: 10
   api:
     depends_on:
-    pgbouncer:
-      condition: service_healthy
+      - pgbouncer
     build: 
       context: .
       dockerfile: anbapi/Dockerfile
