@@ -7,7 +7,7 @@ engine = create_engine(
     config.DATABASE_URL,
     poolclass=QueuePool,
     pool_size=10,
-    max_overflow=20,
+    max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=1800,
     pool_use_lifo=True,

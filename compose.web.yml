@@ -11,6 +11,7 @@ services:
       MAX_CLIENT_CONN: 2000
       DEFAULT_POOL_SIZE: 80  
       AUTH_TYPE: scram-sha-256
+      LISTEN_PORT: 6432
     ports:
       - "6432:5432"
 
@@ -26,4 +27,4 @@ services:
       - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --workers 2 --threads 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --keep-alive 10 --timeout 60 --graceful-timeout 30 --max-requests 800 --max-requests-jitter 100 --log-level info"
+      sh -lc "python prestart.py && exec gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers 3 --bind 0.0.0.0:8000 --keep-alive 5 --timeout 90 --graceful-timeout 30 --max-requests 300 --max-requests-jitter 150 --log-level info"
