@@ -21,7 +21,7 @@ services:
       DB_NAME: anbdb
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 2000
-      DEFAULT_POOL_SIZE: 50
+      DEFAULT_POOL_SIZE: 80
       AUTH_TYPE: scram-sha-256
     depends_on: [ postgres ]
     ports: [ "6432:5432" ] 
@@ -60,7 +60,7 @@ services:
       - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 3 --keep-alive 5 --timeout 60 --graceful-timeout 30 --max-requests 2000 --max-requests-jitter 200"
+      sh -lc "python prestart.py && exec gunicorn main:app --workers 2 --threads 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --keep-alive 10 --timeout 60 --graceful-timeout 30 --max-requests 800 --max-requests-jitter 100 --log-level info"
 
   worker:
     build:
