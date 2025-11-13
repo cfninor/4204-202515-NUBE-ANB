@@ -1,18 +1,4 @@
 services:
-  api:
-    build: 
-      context: .
-      dockerfile: anbapi/Dockerfile
-    env_file: .env
-    working_dir: /app/app
-    volumes:
-      - /home/ubuntu/remote_folder:/data
-      - ./anbapi/app/assets:/assets
-    ports: [ "8000:8000" ]
-    command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 2 --threads 4 --keep-alive 10 --timeout 60 --graceful-timeout 30 --max-requests 1000 --max-requests-jitter 200"
-    restart: unless-stopped
-
   pgbouncer:
     image: edoburu/pgbouncer:latest
     container_name: pgbouncer-anb
@@ -27,4 +13,25 @@ services:
       AUTH_TYPE: scram-sha-256
     ports:
       - "6432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    depends_on:
+    pgbouncer:
+      condition: service_healthy
+    build: 
+      context: .
+      dockerfile: anbapi/Dockerfile
+    env_file: .env
+    working_dir: /app/app
+    volumes:
+      - /home/ubuntu/remote_folder:/data
+      - ./anbapi/app/assets:/assets
+    ports: [ "8000:8000" ]
+    command: >
+      sh -lc "python prestart.py && exec gunicorn main:app --bind 0.0.0.0:8000 --worker-class uvicorn.workers.UvicornWorker --workers 2 --threads 4 --keep-alive 10 --timeout 60 --graceful-timeout 30 --max-requests 1000 --max-requests-jitter 200"
     restart: unless-stopped
