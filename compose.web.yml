@@ -11,7 +11,7 @@ services:
       - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers 2 --bind 0.0.0.0:8000 --keep-alive 10 --timeout 60 --graceful-timeout 60 --max-requests 0 --log-level info"
+      sh -lc "python prestart.py && exec gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers 3 --bind 0.0.0.0:8000 --keep-alive 10 --timeout 120 --graceful-timeout 60 --max-requests 0 --log-level info"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
