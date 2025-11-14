@@ -72,6 +72,7 @@ async def upload(
     storage.save(vid, video_file.file)
 
     if callable(getattr(storage, "url", None)):
+        vid = f"{str('/uploads').strip('/')}/{vid}.mp4"
         public_url = storage.url(vid)
     else:
         public_url = vid
