@@ -11,21 +11,6 @@ services:
     volumes: [ ".pgdata:/var/lib/postgresql/data" ]
     ports: [ "5434:5432" ]
 
-  pgbouncer:
-    image: edoburu/pgbouncer:latest
-    container_name: pgbouncer-anb
-    environment:
-      DB_USER: anbuser
-      DB_PASSWORD: anbpass
-      DB_HOST: postgres
-      DB_NAME: anbdb
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: 2000
-      DEFAULT_POOL_SIZE: 80
-      AUTH_TYPE: scram-sha-256
-    depends_on: [ postgres ]
-    ports: [ "6432:5432" ] 
-
   db-init:
     image: postgres:16-alpine
     depends_on: [ postgres ]
@@ -53,21 +38,21 @@ services:
       context: .
       dockerfile: anbapi/Dockerfile
     env_file: .env
-    depends_on: [ pgbouncer, rabbitmq, redis ]
+    depends_on: [ postgres, rabbitmq, redis ]
     working_dir: /app/app
     volumes:
       - media:/data
       - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --workers 2 --threads 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --keep-alive 10 --timeout 60 --graceful-timeout 30 --max-requests 800 --max-requests-jitter 100 --log-level info"
+      sh -lc "python prestart.py && exec gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers 3 --bind 0.0.0.0:8000 --keep-alive 10 --timeout 60 --graceful-timeout 60 --max-requests 0 --log-level info"
 
   worker:
     build:
       context: .
       dockerfile: anbapi/Dockerfile
     env_file: .env
-    depends_on: [ pgbouncer, rabbitmq, redis ]
+    depends_on: [ postgres, rabbitmq, redis ]
     working_dir: /app/app                 
     environment:
       PYTHONPATH: /app                    

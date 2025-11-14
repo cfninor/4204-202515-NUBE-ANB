@@ -1,22 +1,6 @@
 services:
-  pgbouncer:
-    image: edoburu/pgbouncer:latest
-    container_name: pgbouncer-anb
-    environment:
-      DB_USER: <rds_user>
-      DB_PASSWORD: <rds_password>
-      DB_HOST: <rds_endpoint>
-      DB_NAME: <rds_dbname>
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: 2000
-      DEFAULT_POOL_SIZE: 80  
-      AUTH_TYPE: scram-sha-256
-      LISTEN_PORT: 6432
-    ports:
-      - "6432:5432"
 
   api:
-    depends_on: [ pgbouncer ]
     build: 
       context: .
       dockerfile: anbapi/Dockerfile
@@ -27,4 +11,4 @@ services:
       - ./anbapi/app/assets:/assets
     ports: [ "8000:8000" ]
     command: >
-      sh -lc "python prestart.py && exec gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers 3 --bind 0.0.0.0:8000 --keep-alive 5 --timeout 90 --graceful-timeout 30 --max-requests 300 --max-requests-jitter 150 --log-level info"
+      sh -lc "python prestart.py && exec gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers 3 --bind 0.0.0.0:8000 --keep-alive 10 --timeout 60 --graceful-timeout 60 --max-requests 0 --log-level info"
