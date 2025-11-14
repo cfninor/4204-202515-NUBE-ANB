@@ -70,13 +70,12 @@ async def upload(
 
     vid = f"{uuid.uuid4()}.mp4"
     storage.save(vid, video_file.file)
-    original_url = getattr(storage, "url", None)
-    public_url = original_url(vid) if callable(original_url) else vid
+    print(f"Archivo guardado en almacenamiento con clave: {storage.url(vid)}")
 
     video = Video(
         user_id=user.id,
         title=title,
-        original_url=public_url,
+        original_url=vid,
         status=VideoStatus.UPLOADED,
         task_id=VideoStatus.UPLOADED,
     )
