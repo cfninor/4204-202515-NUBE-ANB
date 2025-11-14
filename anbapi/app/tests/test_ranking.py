@@ -1,12 +1,11 @@
 import json
-import pytest
 from unittest.mock import MagicMock, patch
-from sqlalchemy import func
 
-from models.video import Video
-from models.videoVote import VideoVote
+import pytest
 from models.user import User
+from models.video import Video
 from models.videoStatus import VideoStatus
+from models.videoVote import VideoVote
 
 
 @pytest.fixture()
@@ -63,9 +62,9 @@ def test_ranking_success(client, user_with_videos_and_votes):
 def test_ranking_uses_cache(mock_redis_client, client):
     """Debe devolver los datos desde cache si están almacenados en Redis."""
     mock_redis = MagicMock()
-    mock_redis.get.return_value = json.dumps([
-        {"position": 1, "username": "cached_user", "city": "Cali", "votes": 5}
-    ])
+    mock_redis.get.return_value = json.dumps(
+        [{"position": 1, "username": "cached_user", "city": "Cali", "votes": 5}]
+    )
     mock_redis_client.return_value = mock_redis
 
     resp = client.get("/api/public/ranking?page=1&size=10")
@@ -91,3 +90,21 @@ def test_ranking_redis_fails(mock_redis_client, client, user_with_videos_and_vot
     assert isinstance(data, list)
     assert len(data) > 0  # sigue devolviendo datos desde DB
 
+
+@patch("services.public_ranking.get_redis_client")
+def test_ranking_cache_invalid_json(
+    mock_redis_client, client, user_with_videos_and_votes
+):
+    """Cubre el caso donde Redis retorna un valor pero json.loads falla."""
+    mock_redis = MagicMock()
+    mock_redis.get.return_value = "este no es un json valido"
+    mock_redis_client.return_value = mock_redis
+
+    resp = client.get("/api/public/ranking?page=1&size=10")
+    assert resp.status_code == 200
+
+    # Asegura que NO devolvió el cache y sí usó la DB
+    data = resp.json()
+    assert isinstance(data, list) and len(data) > 0
+
+    mock_redis.get.assert_called_once()
