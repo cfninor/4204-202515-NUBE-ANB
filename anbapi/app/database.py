@@ -6,9 +6,9 @@ from sqlalchemy.pool import QueuePool
 engine = create_engine(
     config.DATABASE_URL,
     poolclass=QueuePool,
-    pool_size=10,
-    max_overflow=5,
-    pool_timeout=60,
+    pool_size=3,
+    max_overflow=1,
+    pool_timeout=30,
     pool_recycle=1800,
     pool_pre_ping=True,
     pool_use_lifo=True,
