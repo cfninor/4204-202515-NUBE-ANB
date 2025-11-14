@@ -71,7 +71,7 @@ async def upload(
     vid = f"{uuid.uuid4()}.mp4"
     saved_key = storage.save(vid, video_file.file)
 
-    if hasattr(storage, "url") and callable(storage.url):
+    if callable(getattr(storage, "url", None)):
         public_url = storage.url(saved_key)
     else:
         public_url = saved_key
