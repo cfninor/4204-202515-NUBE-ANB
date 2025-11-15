@@ -12,6 +12,18 @@
 | Juan Sebastián Rodríguez Gómez | j.rodriguezg@uniandes.edu.co |
 
 ---
+# Documentación Entrega 4
+| Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Modelo de Componentes**       | Representación visual de los componentes de arquitectura de la aplicación.                                       | [`/docs/Entrega_4/diagrama_componentes.md`](./docs/Entrega_4/diagrama_componentes.md)             |
+| **Modelo de Despliegue**    | Representación visual de la arquitectura de despliegue en nube.                                                          | [`/docs/Entrega_4/despliegue_y_documentacion.md`](./docs/Entrega_4/despliegue_y_documentacion.md) |
+| **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_4/sonarqube_report.md`](./docs/Entrega_4/sonarqube_report.md)                     |
+| **Pruebas de carga** | Evidencia de las pruebas de carga. | [`/capacity-planning/pruebas_de_carga_entrega_4.md`](./capacity-planning/pruebas_de_carga_entrega4.md)                     |
+
+## Sustentación
+
+### Entrega 4
+El video de sustentación correspondiente a la Entrega 4 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_4`](./sustentacion/Entrega_4/sustentacion.md)
 
 # Documentación Entrega 3
 | Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
@@ -68,6 +80,9 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │     └── 📜 ci.yml                     # Pipeline CI (tests, lint, cobertura, Sonar, etc.)
 ├── 📂 anbapi/                          # Backend principal (FastAPI)
 │   ├── 📂 app/                         # Código fuente de la API
+│   │   ├── 📂 assets/                  # Imagenes
+│   │   │   ├── 📜 logo.jpg
+│   │   │   └── 📜 watermark.png
 │   │   ├── 📂 models/                  # Modelos (SQLAlchemy)
 │   │   │   ├── 📜 __init__.py
 │   │   │   ├── 📜 user.py
@@ -87,7 +102,9 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   │   │   └── 📜 video.py
 │   │   ├── 📂 storage_a/                # Abstracción lógica storage
 │   │   │   ├── 📜 base.py
-│   │   │   └── 📜 local.py
+│   │   │   ├── 📜 factory.py
+│   │   │   ├── 📜 local.py
+│   │   │   └── 📜 s3.py
 │   │   ├── 📂 test/                     # Pruebas unitarias
 │   │   │   ├── 📜 conftest.py
 │   │   │   ├── 📜 test_auth.py
@@ -95,6 +112,7 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   │   │   ├── 📜 test_ranking.py
 │   │   │   ├── 📜 test_security.py
 │   │   │   ├── 📜 test_task.py
+│   │   │   ├── 📜 test_video_to_iso.py
 │   │   │   ├── 📜 test_video.py
 │   │   │   └── 📜 test_vote.py
 │   │   ├── 📂 workers/                  # Workers - RabbitMQ, tareas pesadas
@@ -116,16 +134,54 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   ├── 📜 Dockerfile                       # Imagen base para la API
 │   ├── 📜 requirements.txt                 # Dependencias principales
 │   └── 📜 requirements-dev.txt             # Dependencias adicionales para desarrollo
+├── 📂 capacity-planning/               # Analisis de capacidad
+│   ├── 📂 img/                         # Imagenes para las entregas
+│   ├── 📜 pruebas_de_carga_entrega1.md
+│   ├── 📜 pruebas_de_carga_entrega2.md
+│   ├── 📜 pruebas_de_carga_entrega3.md
+│   └── 📜 pruebas_de_carga_entrega4.md
 ├── 📂 collections/                     # Colecciones de Postman y entornos de pruebas
+│   ├── 📜 4204-Nube-DocumentadaV2.postman_collection.json
+│   ├── 📜 4204-Nube.postman_collection.json
+│   └── 📜 environment.postman_environment.json
 ├── 📂 docs/                            # Documentación general del proyecto
 │   ├── 📂 Entrega_1/                   # Entrega 1 - Documentos
-│   │   └── 📜 despliegue_y_documentacion.md # Instalación y ejecución de la aplicación
+│   │   ├── 📂 img/ 
+│   │   ├── 📜 despliegue_y_documentacion.md # Instalación y ejecución de la aplicación
+│   │   ├── 📜 diagrama_componentes.md
+│   │   ├── 📜 diagrama_flujo.md
+│   │   ├── 📜 documentacion_api.md
+│   │   ├── 📜 modelo_de_datos.md
+│   │   └── 📜 sonarqube_report.md
+│   ├── 📂 Entrega_2/                   # Entrega 2 - Documentos 
+│   │   ├── 📜 despliegue_y_documentacion.md
+│   │   ├── 📜 diagrama_componentes.md
+│   │   └── 📜 sonarqube_report.md
+│   ├── 📂 Entrega_3/                   # Entrega 3 - Documentos
+│   │   ├── 📂 img/ 
+│   │   ├── 📜 despliegue_y_documentacion.md
+│   │   ├── 📜 diagrama_componentes.md
+│   │   └── 📜 sonarqube_report.md
+│   ├── 📂 Entrega_4/                   # Entrega 4 - Documentos
+│   │   ├── 📂 img/ 
+│   │   ├── 📜 despliegue_y_documentacion.md
+│   │   ├── 📜 diagrama_componentes.md
+│   │   └── 📜 sonarqube_report.md
 ├── 📂 sustentacion/                    # Recursos de sustentación
-│   └── 📂 Entrega_1/                   # Entrega 1 - Sustentación
+│   ├──  📂 Entrega_1/                   # Entrega 1 - Sustentación
+│   │   └── 📜 sustentacion.md
+│   ├──  📂 Entrega_2/                   # Entrega 2 - Sustentación
+│   │   └── 📜 sustentacion.md
+│   ├──  📂 Entrega_3/                   # Entrega 3 - Sustentación
+│   │   └── 📜 sustentacion.md
+│   ├──  📂 Entrega_4/                   # Entrega 4 - Sustentación
+│   │   └── 📜 sustentacion.md
 ├── 📜 .coveragerc                      # Configuración de cobertura
 ├── 📜 .env.example                     # Ejemplo de variables de entorno
 ├── 📜 .env.example.local               # Ejemplo de variables de entorno local
 ├── 📜 .gitignore                       # Archivos/carpetas ignoradas por Git
+├── 📜 compose-web.yml                  # Orquestación de contenedor (API)
+├── 📜 compose-worker.yml               # Orquestación de contenedores (Redis, Worker)
 ├── 📜 docker-compose.yml               # Orquestación de contenedores (API, DB, Redis, etc.)
 ├── 📜 pytest.ini                       # Configuración pruebas
 ├── 📜 README.md                        # Documentación general del proyecto
