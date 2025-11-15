@@ -60,7 +60,7 @@ class BenchmarkProducer:
             user_id=1,  # ID de usuario por defecto para benchmarks
             title=video_filename,
             original_url=video,
-            created_at=datetime.now(timezone.utc),
+            uploaded_at=datetime.now(timezone.utc),
             status=VideoStatus.UPLOADED,
             task_id="benchmark"
             )

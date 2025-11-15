@@ -187,9 +187,11 @@ class BenchmarkService:
             for video in videos:
                 if video.status == VideoStatus.PROCESSED:
                     processed_count += 1
-                    if video.processed_at and video.created_at:
-                        processing_time = (video.processed_at - video.created_at).total_seconds()
+                    # ✅ CORREGIDO: Usar processing_started_at en lugar de created_at
+                    if video.processed_at and video.processing_started_at:
+                        processing_time = (video.processed_at - video.processing_started_at).total_seconds()
                         processing_times.append(processing_time)
+                        print(f"📊 Video {video.id}: Tiempo procesamiento real = {processing_time}".replace(".", ","))
                 elif video.status == VideoStatus.UPLOADED:
                     processing_count += 1
                 elif video.status == VideoStatus.FAILED:
@@ -199,8 +201,10 @@ class BenchmarkService:
             
             # Calcular métricas
             if processing_times:
-                avg_service_time = sum(processing_times) / len(processing_times)
-                throughput_per_min = (processed_count / avg_service_time * 60) if avg_service_time > 0 else 0
+                total_processing_time = sum(processing_times)
+                avg_service_time = total_processing_time / len(processing_times)
+                throughput_per_min = (processed_count / total_processing_time )* 60 if avg_service_time > 0 else 0
+                print(f"📊 throughput_per_min:{throughput_per_min}")
             else:
                 avg_service_time = 0
                 throughput_per_min = 0
