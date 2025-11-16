@@ -149,7 +149,7 @@ class BenchmarkProducer:
                 input_path,
             ]
             result = subprocess.run(cmd, capture_output=True, text=True)
-            duration = float(result.stdout.strip())
+            _duration = float(result.stdout.strip())
 
             # Calcular nueva duración para alcanzar el tamaño
             # Estimación: 1MB ≈ 3 segundos en calidad baja
