@@ -1,14 +1,13 @@
-import os
 import json
+import os
 from typing import List
 
 import redis
-from fastapi import APIRouter, Depends, HTTPException, Query
+from database import get_db
+from fastapi import APIRouter, Depends, Query
+from models import User, Video, VideoVote
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
-from database import get_db
-from models import Video, VideoVote, User
 
 router = APIRouter(prefix="/api/public", tags=["public_ranking"])
 
