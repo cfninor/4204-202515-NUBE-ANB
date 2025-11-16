@@ -10,6 +10,9 @@ from database import SessionLocal
 from models.video import Video
 from models.videoStatus import VideoStatus
 from sqlalchemy import select
+from storage_a.factory import get_storage
+
+storage = get_storage()
 
 
 class BenchmarkProducer:
@@ -67,6 +70,8 @@ class BenchmarkProducer:
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
 
+            path = storage.save(video_filename, open(video, "rb"))
+
             if result.returncode != 0:
                 print(f"⚠️ Error creando video dummy: {result.stderr}")
                 # Fallback: crear archivo pequeño válido
@@ -74,7 +79,7 @@ class BenchmarkProducer:
             video = Video(
                 user_id=1,  # ID de usuario por defecto para benchmarks
                 title=video_filename,
-                original_url=video,
+                original_url=path,
                 uploaded_at=datetime.now(timezone.utc),
                 status=VideoStatus.UPLOADED,
                 task_id="benchmark",
