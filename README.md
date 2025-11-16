@@ -25,6 +25,10 @@
 ### Entrega 4
 El video de sustentación correspondiente a la Entrega 4 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_4`](./sustentacion/Entrega_4/sustentacion.md)
 
+## Colecciones de Postman
+
+Las colecciones y entornos se encuentran en el directorio  [`/collections/Entrega_4`](./collections/Entrega_4/)
+
 # Documentación Entrega 3
 | Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
