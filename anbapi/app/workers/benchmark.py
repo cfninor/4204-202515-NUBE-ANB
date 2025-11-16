@@ -34,7 +34,7 @@ class BenchmarkProducer:
         finally:
             db.close()
 
-    def create_real_dummy_video(self, size_mb: int, duration: int = 10) -> str:
+    def create_real_dummy_video(self, size_mb: int, duration: int = 25) -> str:
         """Crea un video dummy real usando FFmpeg"""
         video_filename = f"benchmark_{size_mb}mb_{uuid.uuid4()}.mp4"
         video_path = os.path.join(self.storage_dir, video_filename)
