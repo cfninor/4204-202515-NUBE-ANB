@@ -13,6 +13,19 @@
 
 ---
 
+# Documentación Entrega 3
+| Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Modelo de Componentes**       | Representación visual de los componentes de arquitectura de la aplicación.                                       | [`/docs/Entrega_3/diagrama_componentes.md`](./docs/Entrega_3/diagrama_componentes.md)             |
+| **Modelo de Despliegue**    | Representación visual de la arquitectura de despliegue en nube.                                                          | [`/docs/Entrega_3/despliegue_y_documentacion.md`](./docs/Entrega_3/despliegue_y_documentacion.md) |
+| **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_3/sonarqube_report.md`](./docs/Entrega_3/sonarqube_report.md)                     |
+| **Pruebas de carga** | Evidencia de las pruebas de carga. | [`/capacity-planning/pruebas_de_carga_entrega_3.md`](./capacity-planning/pruebas_de_carga_entrega3.md)                     |
+
+## Sustentación
+
+### Entrega 3
+El video de sustentación correspondiente a la Entrega 3 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_3`](./sustentacion/Entrega_3/sustentacion.md)
+
 # Documentación Entrega 2
 | Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -21,6 +34,10 @@
 | **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_2/sonarqube_report.md`](./docs/Entrega_2/sonarqube_report.md)                     |
 | **Pruebas de carga** | Evidencia de las pruebas de carga. | [`/capacity-planning/pruebas_de_carga_entrega_2.md`](./capacity-planning/pruebas_de_carga_entrega2.md)                     |
 
+## Sustentación
+
+### Entrega 2
+El video de sustentación correspondiente a la Entrega 2 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_2`](./sustentacion/Entrega_2/sustentacion.md)
 
 # Documentación Entrega 1
 | Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
@@ -33,13 +50,14 @@
 | **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_1/sonarqube_report.md`](./docs/Entrega_1/sonarqube_report.md)                     |
 | **Pruebas de carga** | Evidencia de las pruebas de carga. | [`/capacity-planning/pruebas_de_carga_entrega_1.md`](./capacity-planning/pruebas_de_carga_entrega1.md)                     |
 
+## Sustentación
+
+### Entrega 1
+El video de sustentación correspondiente a la Entrega 1 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_1`](./sustentacion/Entrega_1/sustentacion.md)
+
 ## Colecciones de Postman
 
 Las colecciones y entornos se encuentran en el directorio  [`/collections`](./collections)
-
-## Sustentación
-
-El video de sustentación correspondiente a la Entrega 1 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_1`](./sustentacion/Entrega_1/sustentacion.md)
 
 ###  📁 Estructura del Proyecto
 
