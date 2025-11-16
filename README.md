@@ -145,6 +145,9 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   ├── 📜 pruebas_de_carga_entrega3.md
 │   └── 📜 pruebas_de_carga_entrega4.md
 ├── 📂 collections/                     # Colecciones de Postman y entornos de pruebas
+│   ├── 📂 Entrega_4/
+│   │   ├── 📜 4204-Nube-Documentada.postman_collection_E4.json
+│   │   └── 📜 environment.postman_environment_E4.json
 │   ├── 📜 4204-Nube-DocumentadaV2.postman_collection.json
 │   ├── 📜 4204-Nube.postman_collection.json
 │   └── 📜 environment.postman_environment.json
