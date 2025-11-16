@@ -14,6 +14,9 @@ omit =
     anbapi/app/celery_app.py
     anbapi/app/database.py
     anbapi/app/main.py
+    anbapi/app/services/benchmark_service.py
+    anbapi/app/services/pruebas.py
+    anbapi/app/workers/benchmark.py
 
 [report]
 omit =
@@ -28,4 +31,7 @@ omit =
     anbapi/app/celery_app.py
     anbapi/app/database.py
     anbapi/app/main.py
+    anbapi/app/services/benchmark_service.py
+    anbapi/app/services/pruebas.py
+    anbapi/app/workers/benchmark.py
 show_missing = True
