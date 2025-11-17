@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from services.benchmark_service import BenchmarkService
-
+from models import VideoStatus
 
 @pytest.fixture
 def service():
@@ -37,6 +37,36 @@ def test_run_saturation_test_starts_thread(mock_thread, service, mock_producer):
     assert data["status"] == "running"
     assert data["video_size_mb"] == 50
 
+def test_run_sustained_benchmark(service, mock_producer):
+    service.producer = mock_producer
+
+    # Mock de DB session más realista
+    mock_session = MagicMock()
+    mock_session.__enter__ = MagicMock(return_value=mock_session)
+    mock_session.__exit__ = MagicMock(return_value=None)
+    
+    # Simular count de videos pendientes - empezar con 0 y luego cambiar
+    mock_session.execute.return_value.scalar.side_effect = [0, 0]  # Dos llamadas
+
+    mock_producer.get_db_session.return_value = mock_session
+    mock_producer.inject_messages_directly.return_value = {
+        "total_messages": 3,
+        "injection_time_seconds": 0.5,
+        "injection_rate_msg_per_sec": 6.0,
+        "video_ids": ["v1", "v2", "v3"],
+    }
+
+    service.active_benchmarks["bench123"] = {"status": "running", "video_ids": []}
+
+    # Usar side_effect para controlar el tiempo de ejecución
+    with patch("time.time") as mock_time:
+        mock_time.side_effect = [0, 1, 5]  # Tercer valor > duration_seconds para salir del bucle
+        with patch("time.sleep"):  # Mock sleep para que sea rápido
+            service._run_sustained_benchmark("bench123", 50, 3, 2)  # duration_seconds=2
+
+    data = service.active_benchmarks["bench123"]
+    assert data["status"] == "completed"
+    assert len(data["video_ids"]) == 3  # 3 que retorna el mock
 
 def test_run_saturation_benchmark_logic(service, mock_producer):
     service.producer = mock_producer
@@ -61,29 +91,6 @@ def test_run_sustained_test_start_thread(mock_thread, service, mock_producer):
     assert benchmark_id in service.active_benchmarks
     assert service.active_benchmarks[benchmark_id]["status"] == "running"
 
-
-def test_run_sustained_benchmark(service, mock_producer):
-    service.producer = mock_producer
-
-    # Mock de DB session
-    mock_session = MagicMock()
-    mock_session.__enter__.return_value = mock_session
-    mock_session.__exit__.return_value = False
-
-    # Simular count de videos pendientes
-    mock_session.execute.return_value.scalar.return_value = 0
-
-    mock_producer.get_db_session.return_value = mock_session
-
-    service.active_benchmarks["bench123"] = {"status": "running"}
-
-    # Reducir tiempo de benchmark para que no tarde
-    with patch("time.time", side_effect=[0, 1]):
-        service._run_sustained_benchmark("bench123", 50, 3, 1)
-
-    data = service.active_benchmarks["bench123"]
-    assert data["status"] == "completed"
-    assert len(data["video_ids"]) == 5  # 5 que retorna el mock
 
 
 def test_get_benchmark_status_completed(service, mock_producer):
@@ -118,32 +125,50 @@ class FakeStatus:
     UPLOADED = "UPLOADED"
     FAILED = "FAILED"
 
-
 def test_calculate_metrics(service):
-    # Sobrescribir VideoStatus para pruebas
-    service.VideoStatus = FakeStatus
-
+    # Crear fechas realistas
     start = datetime.now(timezone.utc) - timedelta(seconds=10)
     end = datetime.now(timezone.utc)
+    
+    # Crear mocks de videos que se parezcan a los modelos reales
+    video1 = MagicMock()
+    video1.id = "1"
+    video1.status = VideoStatus.PROCESSED  # Usar el enum real
+    video1.processing_started_at = start
+    video1.processed_at = end
+    
+    video2 = MagicMock()
+    video2.id = "2"
+    video2.status = VideoStatus.UPLOADED  # Usar el enum real
+    video2.processing_started_at = None
+    video2.processed_at = None
+    
+    video3 = MagicMock()
+    video3.id = "3"
+    video3.status = VideoStatus.FAILED  # Usar el enum real
+    video3.processing_started_at = None
+    video3.processed_at = None
 
-    video1 = FakeVideo("1", FakeStatus.PROCESSED, start, end)
-    video2 = FakeVideo("2", FakeStatus.UPLOADED, None, None)
-    video3 = FakeVideo("3", FakeStatus.FAILED, None, None)
-
+    # Mock más realista de la consulta SQLAlchemy
     fake_db = MagicMock()
-    fake_db.execute.return_value.scalars.return_value.all.return_value = [
-        video1,
-        video2,
-        video3,
-    ]
+    
+    # Mock para execute().scalars().all()
+    mock_scalars = MagicMock()
+    mock_scalars.all.return_value = [video1, video2, video3]
+    
+    mock_execute = MagicMock()
+    mock_execute.scalars.return_value = mock_scalars
+    
+    fake_db.execute.return_value = mock_execute
 
     metrics = service._calculate_metrics(["1", "2", "3"], fake_db)
 
     assert metrics["processed_count"] == 1
     assert metrics["processing_count"] == 1
     assert metrics["failed_count"] == 1
-    assert metrics["average_service_time_seconds"] > 0
-
+    assert metrics["total_count"] == 3
+    assert metrics["average_service_time_seconds"] == 10.0  # 10 segundos exactos
+    assert metrics["success_rate"] == pytest.approx(33.33, 0.1)
 
 def test_generate_capacity_table(service):
     service.active_benchmarks = {
