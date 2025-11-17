@@ -200,7 +200,10 @@ def process_video(video_id: str) -> Literal["not-found", "ok", "error"]:
 
         if not video:
             return "not-found"
-
+       
+        video.processing_started_at = datetime.now(timezone.utc)
+        db.commit()
+        
         src_key = video.original_url
         intro_len = float(config.INTRO_SECONDS or 0.0)
         outro_len = float(config.OUTRO_SECONDS or 0.0)
