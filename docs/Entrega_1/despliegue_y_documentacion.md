@@ -50,7 +50,7 @@ docker compose down
 
 1. Levantar servicios en Docker
 ```bash
-docker compose up -d postgres pgbouncer redis rabbitmq db-init
+docker compose up -d postgres redis rabbitmq db-init
 ```
 
 2. Configurar el archivo .env para apuntar a los puertos expuestos en localhost

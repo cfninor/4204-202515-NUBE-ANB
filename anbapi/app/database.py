@@ -1,22 +1,25 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
-from sqlalchemy.pool import NullPool
-
 from config import config
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.pool import QueuePool
 
 engine = create_engine(
     config.DATABASE_URL,
+    poolclass=QueuePool,
+    pool_size=3,
+    max_overflow=1,
+    pool_timeout=30,
+    pool_recycle=1800,
+    pool_pre_ping=True,
+    pool_use_lifo=True,
     future=True,
-    poolclass=NullPool,
     connect_args={
         "connect_timeout": 5,
         "application_name": "api-anb",
     },
 )
 
-SessionLocal = scoped_session(
-    sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
-)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
 Base = declarative_base()
 
 

@@ -70,6 +70,7 @@ async def upload(
 
     vid = f"{uuid.uuid4()}.mp4"
     path = storage.save(vid, video_file.file)
+    print(f"Archivo guardado en almacenamiento con clave: {storage.url(vid)}")
 
     video = Video(
         user_id=user.id,
