@@ -7,6 +7,7 @@ from models.videoStatus import VideoStatus
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from workers.benchmark import BenchmarkProducer
+import numpy as np
 
 
 class BenchmarkService:
@@ -253,6 +254,11 @@ class BenchmarkService:
             # Calcular métricas
             if processing_times:
                 total_processing_time = sum(processing_times)
+                mgBySecong = (len(total_count) / total_processing_time).second
+                desviation= np.std(processing_times)
+                p90=np.percentile(processing_times,90)
+                p95=np.percentile(processing_times,95)
+                p50=np.percentile(processing_times,50)
                 avg_service_time = total_processing_time / len(processing_times)
                 throughput_per_min = (
                     (processed_count / total_processing_time) * 60
@@ -272,6 +278,11 @@ class BenchmarkService:
                 "throughput_videos_per_min": round(throughput_per_min, 2),
                 "average_service_time_seconds": round(avg_service_time, 2),
                 "success_rate": round(success_rate, 2),
+                "MBBySecond": round(mgBySecong, 2),
+                "desviation": round(desviation, 2),
+                "p90": round(p90, 2),
+                "p95": round(p95, 2),
+                "p50": round(p50, 2),
                 "processed_count": processed_count,
                 "processing_count": processing_count,
                 "failed_count": failed_count,
