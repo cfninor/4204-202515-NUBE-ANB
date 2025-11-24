@@ -15,4 +15,4 @@ if config.RABBIT_URL.startswith("sqs"):
         "queue_name_prefix": "anb-",
     }
 
-celery.autodiscover_tasks(["app.workers"])
+celery.autodiscover_tasks(["workers"])
