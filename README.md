@@ -156,7 +156,8 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   ├── 📜 pruebas_de_carga_entrega1.md
 │   ├── 📜 pruebas_de_carga_entrega2.md
 │   ├── 📜 pruebas_de_carga_entrega3.md
-│   └── 📜 pruebas_de_carga_entrega4.md
+│   ├── 📜 pruebas_de_carga_entrega4.md
+│   └── 📜 pruebas_de_carga_entrega5.md
 ├── 📂 collections/                     # Colecciones de Postman y entornos de pruebas
 │   ├── 📂 Entrega_4/
 │   │   ├── 📜 4204-Nube-Documentada.postman_collection_E4.json
@@ -187,6 +188,11 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   │   ├── 📜 despliegue_y_documentacion.md
 │   │   ├── 📜 diagrama_componentes.md
 │   │   └── 📜 sonarqube_report.md
+│   ├── 📂 Entrega_5/                   # Entrega 5 - Documentos
+│   │   ├── 📂 img/ 
+│   │   ├── 📜 despliegue_y_documentacion.md
+│   │   ├── 📜 diagrama_componentes.md
+│   │   └── 📜 sonarqube_report.md
 ├── 📂 sustentacion/                    # Recursos de sustentación
 │   ├──  📂 Entrega_1/                   # Entrega 1 - Sustentación
 │   │   └── 📜 sustentacion.md
@@ -195,6 +201,8 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   ├──  📂 Entrega_3/                   # Entrega 3 - Sustentación
 │   │   └── 📜 sustentacion.md
 │   ├──  📂 Entrega_4/                   # Entrega 4 - Sustentación
+│   │   └── 📜 sustentacion.md
+│   ├──  📂 Entrega_5/                   # Entrega 5 - Sustentación
 │   │   └── 📜 sustentacion.md
 ├── 📜 .coveragerc                      # Configuración de cobertura
 ├── 📜 .env.example                     # Ejemplo de variables de entorno
