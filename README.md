@@ -12,6 +12,19 @@
 | Juan Sebastián Rodríguez Gómez | j.rodriguezg@uniandes.edu.co |
 
 ---
+# Documentación Entrega 5
+| Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Modelo de Componentes**       | Representación visual de los componentes de arquitectura de la aplicación.                                       | [`/docs/Entrega_5/diagrama_componentes.md`](./docs/Entrega_5/diagrama_componentes.md)             |
+| **Modelo de Despliegue**    | Representación visual de la arquitectura de despliegue en nube.                                                          | [`/docs/Entrega_5/despliegue_y_documentacion.md`](./docs/Entrega_5/despliegue_y_documentacion.md) |
+| **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_5/sonarqube_report.md`](./docs/Entrega_5/sonarqube_report.md)                     |
+| **Pruebas de carga** | Evidencia de las pruebas de carga. | [`/capacity-planning/pruebas_de_carga_entrega_5.md`](./capacity-planning/pruebas_de_carga_entrega5.md)                     |
+
+## Sustentación
+
+### Entrega 5
+El video de sustentación correspondiente a la Entrega 4 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_5`](./sustentacion/Entrega_5/sustentacion.md)
+
 # Documentación Entrega 4
 | Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
