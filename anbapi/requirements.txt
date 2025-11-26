@@ -21,3 +21,4 @@ faker
 psycopg[binary]
 python-multipart
 boto3
+numpy
