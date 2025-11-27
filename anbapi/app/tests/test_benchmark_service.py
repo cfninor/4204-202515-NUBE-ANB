@@ -98,7 +98,7 @@ def test_get_benchmark_status_completed(service, mock_producer):
 
     mock_db = MagicMock()
 
-    service.active_benchmarks["b1"] = {"status": "completed", "video_ids": ["v1", "v2"]}
+    service.active_benchmarks["b1"] = {"status": "completed", "video_ids": ["v1", "v2"],"video_size_mb": 50}
 
     # Forzar cálculo de métricas
     service._calculate_metrics = MagicMock(return_value={"processed_count": 2})
@@ -161,7 +161,7 @@ def test_calculate_metrics(service):
     
     fake_db.execute.return_value = mock_execute
 
-    metrics = service._calculate_metrics(["1", "2", "3"], fake_db)
+    metrics = service._calculate_metrics(["1", "2", "3"], fake_db,50)
 
     assert metrics["processed_count"] == 1
     assert metrics["processing_count"] == 1
