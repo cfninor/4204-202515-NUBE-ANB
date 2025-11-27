@@ -12,6 +12,19 @@
 | Juan Sebastián Rodríguez Gómez | j.rodriguezg@uniandes.edu.co |
 
 ---
+# Documentación Entrega 5
+| Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Modelo de Componentes**       | Representación visual de los componentes de arquitectura de la aplicación.                                       | [`/docs/Entrega_5/diagrama_componentes.md`](./docs/Entrega_5/diagrama_componentes.md)             |
+| **Modelo de Despliegue**    | Representación visual de la arquitectura de despliegue en nube.                                                          | [`/docs/Entrega_5/despliegue_y_documentacion.md`](./docs/Entrega_5/despliegue_y_documentacion.md) |
+| **Reporte de Análisis SonarQube** | Evidencia del último análisis ejecutado sobre la rama principal. Incluye: métricas de *bugs*, *vulnerabilidades*, *code smells*, cobertura de pruebas unitarias y estado del *quality gate*. | [`/docs/Entrega_5/sonarqube_report.md`](./docs/Entrega_5/sonarqube_report.md)                     |
+| **Pruebas de carga** | Evidencia de las pruebas de carga. | [`/capacity-planning/pruebas_de_carga_entrega_5.md`](./capacity-planning/pruebas_de_carga_entrega5.md)                     |
+
+## Sustentación
+
+### Entrega 5
+El video de sustentación correspondiente a la Entrega 4 se encuentra disponible en la siguiente ruta:  [`/sustentacion/Entrega_5`](./sustentacion/Entrega_5/sustentacion.md)
+
 # Documentación Entrega 4
 | Documento                         | Descripción                                                                                                                                                                                  | Ruta                                                                                              |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -143,7 +156,8 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   ├── 📜 pruebas_de_carga_entrega1.md
 │   ├── 📜 pruebas_de_carga_entrega2.md
 │   ├── 📜 pruebas_de_carga_entrega3.md
-│   └── 📜 pruebas_de_carga_entrega4.md
+│   ├── 📜 pruebas_de_carga_entrega4.md
+│   └── 📜 pruebas_de_carga_entrega5.md
 ├── 📂 collections/                     # Colecciones de Postman y entornos de pruebas
 │   ├── 📂 Entrega_4/
 │   │   ├── 📜 4204-Nube-Documentada.postman_collection_E4.json
@@ -174,6 +188,11 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   │   ├── 📜 despliegue_y_documentacion.md
 │   │   ├── 📜 diagrama_componentes.md
 │   │   └── 📜 sonarqube_report.md
+│   ├── 📂 Entrega_5/                   # Entrega 5 - Documentos
+│   │   ├── 📂 img/ 
+│   │   ├── 📜 despliegue_y_documentacion.md
+│   │   ├── 📜 diagrama_componentes.md
+│   │   └── 📜 sonarqube_report.md
 ├── 📂 sustentacion/                    # Recursos de sustentación
 │   ├──  📂 Entrega_1/                   # Entrega 1 - Sustentación
 │   │   └── 📜 sustentacion.md
@@ -182,6 +201,8 @@ Las colecciones y entornos se encuentran en el directorio  [`/collections`](./co
 │   ├──  📂 Entrega_3/                   # Entrega 3 - Sustentación
 │   │   └── 📜 sustentacion.md
 │   ├──  📂 Entrega_4/                   # Entrega 4 - Sustentación
+│   │   └── 📜 sustentacion.md
+│   ├──  📂 Entrega_5/                   # Entrega 5 - Sustentación
 │   │   └── 📜 sustentacion.md
 ├── 📜 .coveragerc                      # Configuración de cobertura
 ├── 📜 .env.example                     # Ejemplo de variables de entorno
