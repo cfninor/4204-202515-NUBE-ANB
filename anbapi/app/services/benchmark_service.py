@@ -229,6 +229,13 @@ class BenchmarkService:
             processing_count = 0
             failed_count = 0
             processing_times = []
+            mgBySecond = 0
+            desviation = 0
+            p90 = 0
+            p95 = 0
+            p50 = 0
+            avg_service_time = 0
+            throughput_per_min = 0
 
             for video in videos:
                 if video.status == VideoStatus.PROCESSED:
@@ -250,17 +257,12 @@ class BenchmarkService:
                     failed_count += 1
 
             total_count = len(videos)
-            mgBySecond = 0
-            desviation = 0
-            p90 = 0
-            p95 = 0
-            p50 = 0
-            avg_service_time = 0
-            throughput_per_min = 0
+            
             # Calcular métricas
             if processing_times:
                 total_processing_time = sum(processing_times)
-                mgBySecong = (len(total_count) / total_processing_time).second
+
+                mb_per_second = (len(total_count) / total_processing_time).second
                 desviation= np.std(processing_times)
                 p90=np.percentile(processing_times,90)
                 p95=np.percentile(processing_times,95)
@@ -284,7 +286,7 @@ class BenchmarkService:
                 "throughput_videos_per_min": round(throughput_per_min, 2),
                 "average_service_time_seconds": round(avg_service_time, 2),
                 "success_rate": round(success_rate, 2),
-                "MBBySecond": round(mgBySecong, 2),
+                "mb_per_second": round(mb_per_second, 2), 
                 "desviation": round(desviation, 2),
                 "p90": round(p90, 2),
                 "p95": round(p95, 2),
@@ -309,6 +311,11 @@ class BenchmarkService:
                 "throughput_videos_per_min": 0,
                 "average_service_time_seconds": 0,
                 "success_rate": 0,
+                "mb_per_second": 0,
+                "desviation": 0,
+                "p90": 0,
+                "p95": 0,
+                "p50": 0,
                 "processed_count": 0,
                 "processing_count": 0,
                 "failed_count": 0,
