@@ -267,6 +267,8 @@ class BenchmarkService:
                 if videos and hasattr(videos[0], 'size_mb') and videos[0].size_mb:
                     video_size_mb = videos[0].size_mb
                 
+                print(f"TAMAÑO DE VIDEO: video_size_mb: {video_size_mb}")
+                
                 # MB/segundo = (total de MB procesados) / (tiempo total de procesamiento)
                 total_mb_processed = processed_count * video_size_mb
                 mb_per_second = total_mb_processed / total_processing_time if total_processing_time > 0 else 0
