@@ -229,6 +229,26 @@ class BenchmarkService:
             processing_count = 0
             failed_count = 0
             processing_times = []
+
+            for video in videos:
+                if video.status == VideoStatus.PROCESSED:
+                    processed_count += 1
+                    if video.processed_at and video.processing_started_at:
+                        processing_time = (
+                            video.processed_at - video.processing_started_at
+                        ).total_seconds()
+                        processing_times.append(processing_time)
+                        print(
+                            f"📊 Video {video.id}: Tiempo procesamiento real = {processing_time}"
+                        )
+                elif video.status == VideoStatus.UPLOADED:
+                    processing_count += 1
+                elif video.status == VideoStatus.FAILED:
+                    failed_count += 1
+
+            total_count = len(videos)
+
+            # Inicializar variables con valores por defecto
             mb_per_second = 0
             desviation = 0
             p90 = 0
@@ -237,56 +257,37 @@ class BenchmarkService:
             avg_service_time = 0
             throughput_per_min = 0
 
-            for video in videos:
-                if video.status == VideoStatus.PROCESSED:
-                    processed_count += 1
-                    # ✅ CORREGIDO: Usar processing_started_at en lugar de created_at
-                    if video.processed_at and video.processing_started_at:
-                        processing_time = (
-                            video.processed_at - video.processing_started_at
-                        ).total_seconds()
-                        processing_times.append(processing_time)
-                        print(
-                            f"📊 Video {video.id}: Tiempo procesamiento real = {processing_time}".replace(
-                                ".", ","
-                            )
-                        )
-                elif video.status == VideoStatus.UPLOADED:
-                    processing_count += 1
-                elif video.status == VideoStatus.FAILED:
-                    failed_count += 1
-
-            total_count = len(videos)
-            
-            # Calcular métricas
+            # Calcular métricas solo si hay tiempos de procesamiento
             if processing_times:
                 total_processing_time = sum(processing_times)
-
-                mb_per_second = (len(total_count) / total_processing_time).second
-                desviation= np.std(processing_times)
-                p90=np.percentile(processing_times,90)
-                p95=np.percentile(processing_times,95)
-                p50=np.percentile(processing_times,50)
+                
+                # Calcular MB por segundo - CORREGIDO
+                # Obtener el tamaño del video de alguna fuente
+                video_size_mb = 50  # Valor por defecto
+                if videos and hasattr(videos[0], 'size_mb') and videos[0].size_mb:
+                    video_size_mb = videos[0].size_mb
+                
+                # MB/segundo = (total de MB procesados) / (tiempo total de procesamiento)
+                total_mb_processed = processed_count * video_size_mb
+                mb_per_second = total_mb_processed / total_processing_time if total_processing_time > 0 else 0
+                
+                # Calcular percentiles y desviación estándar
+                desviation = np.std(processing_times)
+                p90 = np.percentile(processing_times, 90)
+                p95 = np.percentile(processing_times, 95)
+                p50 = np.percentile(processing_times, 50)
+                
                 avg_service_time = total_processing_time / len(processing_times)
-                throughput_per_min = (
-                    (processed_count / total_processing_time) * 60
-                    if avg_service_time > 0
-                    else 0
-                )
-                print(f"📊 throughput_per_min:{throughput_per_min}")
-            else:
-                avg_service_time = 0
-                throughput_per_min = 0
+                throughput_per_min = (processed_count / total_processing_time) * 60 if total_processing_time > 0 else 0
+                print(f"📊 throughput_per_min: {throughput_per_min}")
 
-            success_rate = (
-                (processed_count / total_count * 100) if total_count > 0 else 0
-            )
+            success_rate = (processed_count / total_count * 100) if total_count > 0 else 0
 
             return {
                 "throughput_videos_per_min": round(throughput_per_min, 2),
                 "average_service_time_seconds": round(avg_service_time, 2),
                 "success_rate": round(success_rate, 2),
-                "mb_per_second": round(mb_per_second, 2), 
+                "MBBySecond": round(mb_per_second, 2),
                 "desviation": round(desviation, 2),
                 "p90": round(p90, 2),
                 "p95": round(p95, 2),
@@ -304,14 +305,13 @@ class BenchmarkService:
         except Exception as e:
             print(f"Error calculando métricas: {str(e)}")
             import traceback
-
             traceback.print_exc()
 
             return {
                 "throughput_videos_per_min": 0,
                 "average_service_time_seconds": 0,
                 "success_rate": 0,
-                "mb_per_second": 0,
+                "MBBySecond": 0,
                 "desviation": 0,
                 "p90": 0,
                 "p95": 0,
@@ -322,7 +322,7 @@ class BenchmarkService:
                 "total_count": len(video_ids),
                 "error": str(e),
             }
-
+        
     def generate_capacity_table(self, db: Session):
         """Genera tabla de capacidad basada en benchmarks históricos"""
         completed_benchmarks = []
