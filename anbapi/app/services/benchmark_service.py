@@ -229,7 +229,7 @@ class BenchmarkService:
             processing_count = 0
             failed_count = 0
             processing_times = []
-            mgBySecond = 0
+            mb_per_second = 0
             desviation = 0
             p90 = 0
             p95 = 0
