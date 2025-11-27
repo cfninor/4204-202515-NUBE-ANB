@@ -161,7 +161,7 @@ def test_calculate_metrics(service):
     
     fake_db.execute.return_value = mock_execute
 
-    metrics = service._calculate_metrics(["1", "2", "3"], fake_db)
+    metrics = service._calculate_metrics(["1", "2", "3"], fake_db,50)
 
     assert metrics["processed_count"] == 1
     assert metrics["processing_count"] == 1
