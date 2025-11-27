@@ -200,12 +200,12 @@ class BenchmarkService:
                 f"Calculando métricas para benchmark {benchmark_id} con {len(video_ids)} videos"
             )
             if video_ids:
-                metrics = self._calculate_metrics(video_ids, db)
+                metrics = self._calculate_metrics(video_ids, db,benchmark["video_size_mb"])
                 benchmark["metrics"] = metrics
 
         return benchmark
 
-    def _calculate_metrics(self, video_ids: list, db: Session):
+    def _calculate_metrics(self, video_ids: list, db: Session, video_size_mb: int):
         """Calcula métricas de rendimiento usando la sesión proporcionada"""
         try:
             if not video_ids:
@@ -261,12 +261,8 @@ class BenchmarkService:
             if processing_times:
                 total_processing_time = sum(processing_times)
                 
-                # Calcular MB por segundo - CORREGIDO
-                # Obtener el tamaño del video de alguna fuente
-                video_size_mb = 50  # Valor por defecto
-                if videos and hasattr(videos[0], 'size_mb') and videos[0].size_mb:
-                    video_size_mb = videos[0].size_mb
-                
+                if(video_size_mb is None):
+                    video_size_mb = 50  # Valor por defecto
                 print(f"TAMAÑO DE VIDEO: video_size_mb: {video_size_mb}")
                 
                 # MB/segundo = (total de MB procesados) / (tiempo total de procesamiento)
@@ -333,7 +329,7 @@ class BenchmarkService:
                 # Recalcular métricas con la sesión actual
                 video_ids = benchmark_data.get("video_ids", [])
                 if video_ids:
-                    metrics = self._calculate_metrics(video_ids, db)
+                    metrics = self._calculate_metrics(video_ids, db,benchmark_data.get("video_size_mb"))
                     completed_benchmarks.append(
                         {
                             "benchmark_id": benchmark_id,
