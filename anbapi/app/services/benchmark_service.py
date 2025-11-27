@@ -250,7 +250,13 @@ class BenchmarkService:
                     failed_count += 1
 
             total_count = len(videos)
-
+            mgBySecond = 0
+            desviation = 0
+            p90 = 0
+            p95 = 0
+            p50 = 0
+            avg_service_time = 0
+            throughput_per_min = 0
             # Calcular métricas
             if processing_times:
                 total_processing_time = sum(processing_times)
